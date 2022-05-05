@@ -2,8 +2,7 @@ package com.leiwingqueen.lsm;
 
 import com.alibaba.fastjson.JSON;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.TreeMap;
@@ -26,20 +25,25 @@ public class SSTable {
      * @param memTable
      */
     public void persistent(TreeMap<String, Command> memTable) throws IOException {
-        ByteBuffer buffer = ByteBuffer.allocate(BUFFER_SIZE);
         segmentId++;
         String filename = FileUtil.buildFilename(path, String.valueOf(segmentId));
-        FileChannel fileChannel = new FileOutputStream(filename).getChannel();
+        RandomAccessFile writer = new RandomAccessFile(filename, "rw");
+        long pos = 0;
+        int size = 0;
         for (Command command : memTable.values()) {
             byte[] json = JSON.toJSONBytes(command);
-            buffer.putInt(json.length);
-            buffer.put(json);
-            if (buffer.position() >= partSize) {
-                //写入一个索引
-                fileChannel.write(buffer);
+            writer.write(json.length);
+            writer.write(json);
+            int len = 4 + json.length;
+            pos += len;
+            size += len;
+            if (size >= partSize) {
+                size = 0;
             }
-            buffer.clear();
         }
-        fileChannel.close();
+        if (size > 0) {
+            //TODO:写入
+        }
+        writer.close();
     }
 }
