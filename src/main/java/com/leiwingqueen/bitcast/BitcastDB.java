@@ -1,4 +1,4 @@
-package com.leiwingqueen;
+package com.leiwingqueen.bitcast;
 
 import com.alibaba.fastjson.JSON;
 import lombok.extern.slf4j.Slf4j;
