@@ -27,8 +27,10 @@ public class SSTable {
         segmentId++;
         String filename = FileUtil.buildFilename(path, String.valueOf(segmentId));
         RandomAccessFile writer = new RandomAccessFile(filename, "rw");
-        long offset = 0;
+        writer.seek(SegmentMetaData.META_DATA_SIZE);
+        long offset = SegmentMetaData.META_DATA_SIZE;
         int size = 0;
+        int dataSize = 0;
         SparseIndex sparseIndex = new SparseIndex();
         String sparseIndexKey = "";
         for (Command command : memTable.values()) {
@@ -40,6 +42,7 @@ public class SSTable {
             writer.write(json);
             int len = 4 + json.length;
             size += len;
+            dataSize += len;
             if (size >= partSize) {
                 //写入稀疏索引
                 sparseIndex.addIndex(sparseIndexKey, offset, size);
@@ -54,6 +57,11 @@ public class SSTable {
         //稀疏索引持久化
         byte[] indexData = sparseIndex.toByteArray();
         writer.write(indexData);
+        //写入元信息
+        SegmentMetaData metaData = new SegmentMetaData(SegmentMetaData.META_DATA_SIZE, dataSize,
+                SegmentMetaData.META_DATA_SIZE + dataSize, indexData.length);
+        writer.seek(0);
+        writer.write(metaData.toByteArray());
         writer.close();
     }
 }
