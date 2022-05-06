@@ -1,7 +1,6 @@
 package com.leiwingqueen.lsm;
 
 
-import com.leiwingqueen.bitcast.BitcastDB;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.IOException;
@@ -80,16 +79,33 @@ public class LSMTreeDB {
     public Optional<String> get(String key) throws IOException {
         try {
             lock.readLock().lock();
-            if (!memTable.containsKey(key)) {
+            Command command = null;
+            //memTable > immutableMemTable > SSTable
+            if (memTable.containsKey(key)) {
+                command = memTable.get(key);
+            } else if (immutableMemTable.containsKey(key)) {
+                command = immutableMemTable.get(key);
+            } else {
+                //查找SSTable
+                command = ssTable.get(key);
+            }
+            if (command == null || Command.OP_RM.equals(command.getOp())) {
                 return Optional.empty();
             }
-            return Optional.empty();
+            if (Command.OP_PUT.equals(command.getOp())) {
+                return Optional.of(command.getValue());
+            } else if (Command.OP_RM.equals(command.getOp())) {
+                return Optional.empty();
+            } else {
+                throw new IllegalArgumentException("命令异常");
+            }
         } finally {
             lock.readLock().unlock();
         }
     }
 
     public Collection<Pair<String, String>> scan(String left, String right) {
+        //TODO:支持范围搜索
         return null;
     }
 

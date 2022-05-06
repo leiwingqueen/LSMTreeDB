@@ -2,9 +2,12 @@ package com.leiwingqueen.lsm;
 
 import com.alibaba.fastjson.JSON;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.TreeMap;
 
 public class SSTable {
@@ -16,6 +19,14 @@ public class SSTable {
         this.segmentId = segmentId;
         this.partSize = partSize;
         this.path = path;
+    }
+
+    public Command get(String key) throws IOException {
+        return null;
+    }
+
+    public Collection<Pair<String, Command>> scan(String left, String right) {
+        return Collections.emptyList();
     }
 
     /**

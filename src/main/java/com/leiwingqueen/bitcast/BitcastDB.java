@@ -185,7 +185,13 @@ public class BitcastDB {
             reader.read(buffer, 0, len);
             //log.info("get:{}", new String(buffer));
             Command cmd = JSON.parseObject(buffer, Command.class);
-            return Optional.of(cmd.value);
+            if (OP_PUT.equals(cmd.op)) {
+                return Optional.of(cmd.value);
+            } else if (OP_RM.equals(cmd.op)) {
+                return Optional.empty();
+            } else {
+                throw new IllegalArgumentException("命令异常");
+            }
         } finally {
             lock.readLock().unlock();
         }
