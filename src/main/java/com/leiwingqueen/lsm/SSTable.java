@@ -1,14 +1,13 @@
 package com.leiwingqueen.lsm;
 
 import com.alibaba.fastjson.JSON;
+import org.apache.commons.lang3.StringUtils;
 
-import java.io.*;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.util.TreeMap;
 
 public class SSTable {
-    public static final int BUFFER_SIZE = 1024;
     private int segmentId;
     private int partSize;
     private String path;
@@ -28,22 +27,33 @@ public class SSTable {
         segmentId++;
         String filename = FileUtil.buildFilename(path, String.valueOf(segmentId));
         RandomAccessFile writer = new RandomAccessFile(filename, "rw");
-        long pos = 0;
+        long offset = 0;
         int size = 0;
+        SparseIndex sparseIndex = new SparseIndex();
+        String sparseIndexKey = "";
         for (Command command : memTable.values()) {
+            if (StringUtils.isBlank(sparseIndexKey)) {
+                sparseIndexKey = command.getKey();
+            }
             byte[] json = JSON.toJSONBytes(command);
             writer.write(json.length);
             writer.write(json);
             int len = 4 + json.length;
-            pos += len;
             size += len;
             if (size >= partSize) {
+                //写入稀疏索引
+                sparseIndex.addIndex(sparseIndexKey, offset, size);
+                offset += size;
                 size = 0;
             }
         }
         if (size > 0) {
-            //TODO:写入
+            //写入稀疏索引
+            sparseIndex.addIndex(sparseIndexKey, offset, size);
         }
+        //稀疏索引持久化
+        byte[] indexData = sparseIndex.toByteArray();
+        writer.write(indexData);
         writer.close();
     }
 }
