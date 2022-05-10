@@ -2,12 +2,10 @@ package com.leiwingqueen.lsm;
 
 import com.alibaba.fastjson.JSON;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.util.Collection;
-import java.util.TreeMap;
+import java.util.*;
 
 public class SegmentImpl implements Segment {
     private String path;
@@ -40,8 +38,35 @@ public class SegmentImpl implements Segment {
     }
 
     @Override
-    public Collection<Pair<String, Command>> scan(String left, String right) {
-        return null;
+    public Collection<Command> scan(String left, String right) throws IOException {
+        if (left.compareTo(right) < 0) {
+            return Collections.emptyList();
+        }
+        SparseIndex.SparseIndexItem first = sparseIndex.findFirst(left);
+        SparseIndex.SparseIndexItem last = sparseIndex.findFirst(right);
+        if (last == null) {
+            return Collections.emptyList();
+        }
+        long offset = 0;
+        if (first != null) {
+            offset = first.offset;
+        }
+        long end = last.offset + last.len;
+        reader.seek(offset);
+        byte[] buffer = new byte[Constant.COMMAND_MAX_SIZE];
+        List<Command> res = new ArrayList<>();
+        while (offset < end) {
+            int commandSize = reader.readInt();
+            reader.read(buffer, 0, commandSize);
+            Command cmd = JSON.parseObject(buffer, Command.class);
+            if (cmd.getKey().compareTo(right) > 0) {
+                break;
+            } else if (cmd.getKey().compareTo(left) >= 0) {
+                res.add(cmd);
+            }
+            offset += 4 + commandSize;
+        }
+        return res;
     }
 
     @Override
