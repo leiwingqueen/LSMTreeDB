@@ -1,6 +1,7 @@
 package com.leiwingqueen.lsm;
 
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.IOException;
@@ -14,6 +15,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * LSMTree java实现
  * https://yetanotherdevblog.com/lsm/
  */
+@Slf4j
 public class LSMTreeDB {
     public static final int PART_SIZE = 1024;
     public static final int MEM_TABLE_MAX_SIZE = 1024;
@@ -120,6 +122,7 @@ public class LSMTreeDB {
      * memTable持久化
      */
     private void doMemTablePersist() throws IOException {
+        log.info("memTable persist[start]...");
         //memTable->immutableMemTable
         lock.writeLock().lock();
         for (Map.Entry<String, Command> entry : memTable.entrySet()) {
@@ -133,5 +136,6 @@ public class LSMTreeDB {
         lock.writeLock().lock();
         immutableMemTable.clear();
         lock.writeLock().unlock();
+        log.info("memTable persist[finish]...");
     }
 }
