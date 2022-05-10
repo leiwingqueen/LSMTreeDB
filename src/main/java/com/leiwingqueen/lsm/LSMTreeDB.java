@@ -24,7 +24,7 @@ public class LSMTreeDB {
     //实现的过程才慢慢理解，其实这个是为了实现WOC所需要的中间表,memTable先dump一份数据到immutableMemTable，
     // 然后再copy到ssTable，这样才能在实现不对memTable加锁的情况下并行持久化到磁盘
     private TreeMap<String, Command> immutableMemTable;
-    private SSTable ssTable;
+    private SSTableImpl ssTable;
     private volatile boolean running;
 
     ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
@@ -33,7 +33,7 @@ public class LSMTreeDB {
         this.path = path;
         this.memTable = new TreeMap<>();
         this.immutableMemTable = new TreeMap<>();
-        this.ssTable = new SSTable(0, PART_SIZE, path);
+        this.ssTable = new SSTableImpl(0, PART_SIZE, path);
         this.running = false;
     }
 

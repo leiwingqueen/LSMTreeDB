@@ -7,35 +7,45 @@ import org.apache.commons.lang3.tuple.Pair;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.TreeMap;
 
-public class SSTable {
+public class SegmentImpl implements Segment {
+    private String path;
     private int segmentId;
     private int partSize;
-    private String path;
+    private SparseIndex sparseIndex;
+    private RandomAccessFile reader;
 
-    public SSTable(int segmentId, int partSize, String path) {
-        this.segmentId = segmentId;
-        this.partSize = partSize;
-        this.path = path;
-    }
-
+    @Override
     public Command get(String key) throws IOException {
+        SparseIndex.SparseIndexItem index = sparseIndex.findFirst(key);
+        if (index == null) {
+            return null;
+        }
+        reader.seek(index.offset);
+        int remind = index.len;
+        byte[] buffer = new byte[Constant.COMMAND_MAX_SIZE];
+        while (remind > 0) {
+            int commandSize = reader.readInt();
+            reader.read(buffer, 0, commandSize);
+            Command cmd = JSON.parseObject(buffer, Command.class);
+            if (cmd.getKey().equals(key)) {
+                return cmd;
+            } else if (cmd.getKey().compareTo(key) > 0) {
+                return null;
+            }
+            remind -= 4 + commandSize;
+        }
         return null;
     }
 
+    @Override
     public Collection<Pair<String, Command>> scan(String left, String right) {
-        return Collections.emptyList();
+        return null;
     }
 
-    /**
-     * 持久化memTable到Segment
-     *
-     * @param memTable
-     */
-    public void persistent(TreeMap<String, Command> memTable) throws IOException {
-        segmentId++;
+    @Override
+    public void persist(TreeMap<String, Command> memTable) throws IOException {
         String filename = FileUtil.buildFilename(path, String.valueOf(segmentId));
         RandomAccessFile writer = new RandomAccessFile(filename, "rw");
         writer.seek(SegmentMetaData.META_DATA_SIZE);

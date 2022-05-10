@@ -21,6 +21,26 @@ public class SparseIndex {
         return JSON.toJSONBytes(indexItems);
     }
 
+    //binary search to find the first index
+    public SparseIndexItem findFirst(String key) {
+        if (indexItems.size() == 0) {
+            return null;
+        }
+        if (indexItems.get(0).getKey().compareTo(key) > 0) {
+            return null;
+        }
+        int l = 0, r = indexItems.size() - 1;
+        while (l < r) {
+            int mid = l + (r - l + 1) / 2;
+            if (indexItems.get(mid).getKey().compareTo(key) <= 0) {
+                l = mid;
+            } else {
+                r = mid - 1;
+            }
+        }
+        return indexItems.get(l);
+    }
+
     public List<SparseIndexItem> getIndexItems() {
         return indexItems;
     }
