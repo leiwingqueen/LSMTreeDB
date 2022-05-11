@@ -21,6 +21,13 @@ public class SparseIndex {
         return JSON.toJSONBytes(indexItems);
     }
 
+    public static SparseIndex parse(byte[] buffer) {
+        List<SparseIndexItem> list = JSON.parseArray(new String(buffer), SparseIndexItem.class);
+        SparseIndex sparseIndex = new SparseIndex();
+        sparseIndex.indexItems.addAll(list);
+        return sparseIndex;
+    }
+
     //binary search to find the first index
     public SparseIndexItem findFirst(String key) {
         if (indexItems.size() == 0) {

@@ -42,4 +42,20 @@ public class SegmentMetaData {
         buffer.putInt(indexLen);
         return buffer.array();
     }
+
+    public long getDataOffset() {
+        return dataOffset;
+    }
+
+    public int getDataLen() {
+        return dataLen;
+    }
+
+    public long getIndexOffset() {
+        return indexOffset;
+    }
+
+    public int getIndexLen() {
+        return indexLen;
+    }
 }
