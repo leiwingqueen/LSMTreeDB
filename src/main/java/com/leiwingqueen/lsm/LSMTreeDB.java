@@ -5,14 +5,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Optional;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
- * LSMTree java实现
+ * LSMTree java implement
  * https://yetanotherdevblog.com/lsm/
  */
 @Slf4j
@@ -106,9 +103,33 @@ public class LSMTreeDB {
         }
     }
 
-    public Collection<Pair<String, String>> scan(String left, String right) {
-        //TODO:支持范围搜索
-        return null;
+    public Collection<Pair<String, String>> scan(String left, String right) throws IOException {
+        TreeMap<String, Command> map = new TreeMap<>();
+        for (Command command : memTable.subMap(left, true, right, true).values()) {
+            map.put(command.getKey(), command);
+        }
+        for (Command command : immutableMemTable.subMap(left, true, right, true).values()) {
+            if (!map.containsKey(command.getKey())) {
+                map.put(command.getKey(), command);
+            }
+        }
+        for (Command command : ssTable.scan(left, right)) {
+            if (!map.containsKey(command)) {
+                map.put(command.getKey(), command);
+            }
+        }
+        List<Pair<String, String>> list = new ArrayList<>(map.size());
+        for (Command command : map.values()) {
+            if (command == null || Command.OP_RM.equals(command.getOp())) {
+                continue;
+            }
+            if (Command.OP_PUT.equals(command.getOp())) {
+                list.add(Pair.of(command.getKey(), command.getValue()));
+            } else {
+                throw new IllegalArgumentException("命令异常");
+            }
+        }
+        return list;
     }
 
     public void memTablePersist() throws IOException {

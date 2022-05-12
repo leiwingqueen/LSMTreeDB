@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.TreeMap;
 
 public interface Segment {
+    //TODO:need to provide contains function with bloomFilter
     Command get(String key) throws IOException;
 
     Collection<Command> scan(String left, String right) throws IOException;

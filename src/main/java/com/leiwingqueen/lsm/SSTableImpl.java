@@ -1,32 +1,45 @@
 package com.leiwingqueen.lsm;
 
-import com.alibaba.fastjson.JSON;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
-
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.Deque;
+import java.util.LinkedList;
 import java.util.TreeMap;
 
 public class SSTableImpl {
     private int segmentId;
     private int partSize;
     private String path;
+    Deque<Segment> segments;
 
     public SSTableImpl(int segmentId, int partSize, String path) {
         this.segmentId = segmentId;
         this.partSize = partSize;
         this.path = path;
+        this.segments = new LinkedList<>();
     }
 
     public Command get(String key) throws IOException {
+        for (Segment segment : segments) {
+            Command command = segment.get(key);
+            if (command != null) {
+                return command;
+            }
+        }
         return null;
     }
 
-    public Collection<Pair<String, Command>> scan(String left, String right) {
-        return Collections.emptyList();
+    public Collection<Command> scan(String left, String right) throws IOException {
+        TreeMap<String, Command> map = new TreeMap<>();
+        for (Segment segment : segments) {
+            Collection<Command> commands = segment.scan(left, right);
+            for (Command command : commands) {
+                if (!map.containsKey(command.getKey())) {
+                    map.put(command.getKey(), command);
+                }
+            }
+        }
+        return map.values();
     }
 
     /**
@@ -36,43 +49,8 @@ public class SSTableImpl {
      */
     public void persistent(TreeMap<String, Command> memTable) throws IOException {
         segmentId++;
-        String filename = FileUtil.buildFilename(path, String.valueOf(segmentId));
-        RandomAccessFile writer = new RandomAccessFile(filename, "rw");
-        writer.seek(SegmentMetaData.META_DATA_SIZE);
-        long offset = SegmentMetaData.META_DATA_SIZE;
-        int size = 0;
-        int dataSize = 0;
-        SparseIndex sparseIndex = new SparseIndex();
-        String sparseIndexKey = "";
-        for (Command command : memTable.values()) {
-            if (StringUtils.isBlank(sparseIndexKey)) {
-                sparseIndexKey = command.getKey();
-            }
-            byte[] json = JSON.toJSONBytes(command);
-            writer.write(json.length);
-            writer.write(json);
-            int len = 4 + json.length;
-            size += len;
-            dataSize += len;
-            if (size >= partSize) {
-                //写入稀疏索引
-                sparseIndex.addIndex(sparseIndexKey, offset, size);
-                offset += size;
-                size = 0;
-            }
-        }
-        if (size > 0) {
-            //写入稀疏索引
-            sparseIndex.addIndex(sparseIndexKey, offset, size);
-        }
-        //稀疏索引持久化
-        byte[] indexData = sparseIndex.toByteArray();
-        writer.write(indexData);
-        //写入元信息
-        SegmentMetaData metaData = new SegmentMetaData(SegmentMetaData.META_DATA_SIZE, dataSize,
-                SegmentMetaData.META_DATA_SIZE + dataSize, indexData.length);
-        writer.seek(0);
-        writer.write(metaData.toByteArray());
-        writer.close();
+        Segment segment = new SegmentImpl(path, segmentId, partSize);
+        segment.persist(memTable);
+        segments.offerFirst(segment);
     }
 }
