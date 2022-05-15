@@ -15,7 +15,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 @Slf4j
 public class LSMTreeDB {
     public static final int PART_SIZE = 1024;
-    public static final int MEM_TABLE_MAX_SIZE = 1024;
+    public static final int MEM_TABLE_MAX_SIZE = 10;
     private String path;
     private TreeMap<String, Command> memTable;
     //实现的过程才慢慢理解，其实这个是为了实现WOC所需要的中间表,memTable先dump一份数据到immutableMemTable，

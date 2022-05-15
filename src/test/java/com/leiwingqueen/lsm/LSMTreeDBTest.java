@@ -18,8 +18,8 @@ public class LSMTreeDBTest {
         db.start();
         for (int i = 0; i < 100; i++) {
             db.put(String.valueOf(i), String.valueOf(i));
-            Thread.sleep(100);
         }
+        db.memTablePersist();
         for (int i = 0; i < 100; i++) {
             Optional<String> opt = db.get(String.valueOf(i));
             Assert.assertEquals(String.valueOf(i), opt.get());

@@ -41,6 +41,7 @@ public class SegmentImpl implements Segment {
 
     @Override
     public Command get(String key) throws IOException {
+        log.info("get key...key:{}", key);
         SparseIndex.SparseIndexItem index = sparseIndex.findFirst(key);
         if (index == null) {
             return null;
@@ -98,6 +99,7 @@ public class SegmentImpl implements Segment {
     public void persist(TreeMap<String, Command> memTable) throws IOException {
         String filename = FileUtil.buildFilename(path, String.valueOf(segmentId));
         RandomAccessFile writer = new RandomAccessFile(filename, "rw");
+        this.reader = new RandomAccessFile(filename, "r");
         writer.seek(SegmentMetaData.META_DATA_SIZE);
         long offset = SegmentMetaData.META_DATA_SIZE;
         int size = 0;
@@ -109,7 +111,7 @@ public class SegmentImpl implements Segment {
                 sparseIndexKey = command.getKey();
             }
             byte[] json = JSON.toJSONBytes(command);
-            writer.write(json.length);
+            writer.writeInt(json.length);
             writer.write(json);
             int len = 4 + json.length;
             size += len;
@@ -119,6 +121,7 @@ public class SegmentImpl implements Segment {
                 sparseIndex.addIndex(sparseIndexKey, offset, size);
                 offset += size;
                 size = 0;
+                sparseIndexKey = "";
             }
         }
         if (size > 0) {
