@@ -6,6 +6,8 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Iterator;
+import java.util.NavigableMap;
 import java.util.TreeMap;
 
 @Slf4j
@@ -33,9 +35,18 @@ public class SegmentImplTest {
             memTable.put(String.valueOf(i), new Command(Command.OP_PUT, String.valueOf(i), String.valueOf(i)));
         }
         segment.persist(memTable);
-        Collection<Command> collection = segment.scan("0", "20");
+        String from = "0";
+        String to = "20";
+        Collection<Command> collection = segment.scan(from, to);
         for (Command command : collection) {
             log.info("{}", command.getKey());
+        }
+        NavigableMap<String, Command> expected = memTable.subMap(from, true, to, true);
+        Assert.assertEquals(expected.size(), collection.size());
+        Iterator<Command> it1 = collection.iterator();
+        Iterator<Command> it2 = expected.values().iterator();
+        while (it1.hasNext()) {
+            Assert.assertEquals(it2.next().getKey(), it1.next().getKey());
         }
     }
 }
