@@ -114,7 +114,7 @@ public class LSMTreeDB {
             }
         }
         for (Command command : ssTable.scan(left, right)) {
-            if (!map.containsKey(command)) {
+            if (!map.containsKey(command.getKey())) {
                 map.put(command.getKey(), command);
             }
         }
