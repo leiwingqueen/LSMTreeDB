@@ -7,6 +7,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.charset.Charset;
 import java.util.*;
 
 @Slf4j
@@ -52,7 +53,7 @@ public class SegmentImpl implements Segment {
         while (remind > 0) {
             int commandSize = reader.readInt();
             reader.read(buffer, 0, commandSize);
-            Command cmd = JSON.parseObject(buffer, Command.class);
+            Command cmd = JSON.parseObject(buffer, 0, commandSize, Charset.forName("utf8"), Command.class);
             if (cmd.getKey().equals(key)) {
                 return cmd;
             } else if (cmd.getKey().compareTo(key) > 0) {
@@ -117,7 +118,7 @@ public class SegmentImpl implements Segment {
             size += len;
             dataSize += len;
             if (size >= partSize) {
-                //写入稀疏索引
+                //write sparse index
                 sparseIndex.addIndex(sparseIndexKey, offset, size);
                 offset += size;
                 size = 0;

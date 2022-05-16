@@ -14,7 +14,7 @@ public class LSMTreeDBTest {
 
     @Test
     public void put() throws IOException, InterruptedException {
-        LSMTreeDB db = new LSMTreeDB("/Users/liyongquan/bitcast");
+        LSMTreeDB db = new LSMTreeDB("/Users/liyongquan/lsm");
         db.start();
         for (int i = 0; i < 100; i++) {
             db.put(String.valueOf(i), String.valueOf(i));
