@@ -66,7 +66,7 @@ public class SegmentImpl implements Segment {
 
     @Override
     public Collection<Command> scan(String left, String right) throws IOException {
-        if (left.compareTo(right) < 0) {
+        if (left.compareTo(right) > 0) {
             return Collections.emptyList();
         }
         SparseIndex.SparseIndexItem first = sparseIndex.findFirst(left);
@@ -85,7 +85,7 @@ public class SegmentImpl implements Segment {
         while (offset < end) {
             int commandSize = reader.readInt();
             reader.read(buffer, 0, commandSize);
-            Command cmd = JSON.parseObject(buffer, Command.class);
+            Command cmd = JSON.parseObject(buffer, 0, commandSize, Charset.forName("utf8"), Command.class);
             if (cmd.getKey().compareTo(right) > 0) {
                 break;
             } else if (cmd.getKey().compareTo(left) >= 0) {
