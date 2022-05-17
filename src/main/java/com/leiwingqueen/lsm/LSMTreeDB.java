@@ -24,17 +24,20 @@ public class LSMTreeDB {
     private SSTableImpl ssTable;
     private volatile boolean running;
 
+    private WAL wal;
+
     ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
-    public LSMTreeDB(String path) {
+    public LSMTreeDB(String path) throws IOException {
         this.path = path;
         this.memTable = new TreeMap<>();
         this.immutableMemTable = new TreeMap<>();
         this.ssTable = new SSTableImpl(0, PART_SIZE, path);
         this.running = false;
+        this.wal = new WALImpl(path);
     }
 
-    public void start() {
+    public void start() throws IOException {
         this.running = true;
         final LSMTreeDB db = this;
         Thread checkPersist = new Thread(() -> {
@@ -50,6 +53,19 @@ public class LSMTreeDB {
             }
         });
         checkPersist.start();
+        reload();
+    }
+
+    private void reload() throws IOException {
+        wal.readSeek(0);
+        while (true) {
+            Optional<Command> opt = wal.read();
+            if (opt.isEmpty()) {
+                break;
+            }
+            Command command = opt.get();
+            this.memTable.put(command.getKey(), command);
+        }
     }
 
     public void stop() {
@@ -63,7 +79,9 @@ public class LSMTreeDB {
     public void put(String key, String value) throws IOException {
         try {
             lock.writeLock().lock();
-            memTable.put(key, new Command(Command.OP_PUT, key, value));
+            Command command = new Command(Command.OP_PUT, key, value);
+            memTable.put(key, command);
+            wal.write(command);
         } finally {
             lock.writeLock().unlock();
         }
@@ -72,7 +90,9 @@ public class LSMTreeDB {
     public void remove(String key) throws IOException {
         try {
             lock.writeLock().lock();
-            memTable.put(key, new Command(Command.OP_RM, key, ""));
+            Command command = new Command(Command.OP_RM, key, "");
+            memTable.put(key, command);
+            wal.write(command);
         } finally {
             lock.writeLock().unlock();
         }
