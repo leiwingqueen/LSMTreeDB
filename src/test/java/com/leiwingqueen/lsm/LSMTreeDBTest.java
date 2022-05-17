@@ -14,7 +14,7 @@ import static org.junit.Assert.*;
 public class LSMTreeDBTest {
 
     @Test
-    public void persistAndGet() throws IOException, InterruptedException {
+    public void persistAndGet() throws IOException {
         LSMTreeDB db = new LSMTreeDB(TestConstant.TEST_PATH);
         db.start();
         for (int i = 0; i < 100; i++) {
@@ -32,7 +32,7 @@ public class LSMTreeDBTest {
     }
 
     @Test
-    public void persistAndScan() throws IOException, InterruptedException {
+    public void persistAndScan() throws IOException {
         LSMTreeDB db = new LSMTreeDB(TestConstant.TEST_PATH);
         db.start();
         TreeMap<String, String> treeMap = new TreeMap<>();
@@ -54,6 +54,23 @@ public class LSMTreeDBTest {
         Iterator<Map.Entry<String, String>> it2 = expected.entrySet().iterator();
         while (it1.hasNext()) {
             Assert.assertEquals(it2.next().getKey(), it1.next().getKey());
+        }
+    }
+
+    //test shutdown the database and reload
+    @Test
+    public void shutdownAndReload() throws IOException {
+        LSMTreeDB db = new LSMTreeDB(TestConstant.TEST_PATH);
+        db.start();
+        for (int i = 0; i < 100; i++) {
+            db.put(String.valueOf(i), String.valueOf(i));
+        }
+        db.memTablePersist();
+        db.stop();
+        db.start();
+        for (int i = 0; i < 100; i++) {
+            Optional<String> opt = db.get(String.valueOf(i));
+            Assert.assertEquals(String.valueOf(i), opt.get());
         }
     }
 }

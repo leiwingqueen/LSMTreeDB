@@ -54,6 +54,9 @@ public class LSMTreeDB {
 
     public void stop() {
         this.running = false;
+        memTable.clear();
+        immutableMemTable.clear();
+        ssTable = null;
     }
 
 
