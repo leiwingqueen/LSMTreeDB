@@ -61,6 +61,9 @@ public class SparseIndex {
         long offset;
         int len;
 
+        public SparseIndexItem() {
+        }
+
         public SparseIndexItem(String key, long offset, int len) {
             this.key = key;
             this.offset = offset;

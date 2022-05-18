@@ -29,7 +29,7 @@ public class SegmentMetaData {
         offset += 4;
         metaData.indexOffset = buffer.getLong(offset);
         offset += 8;
-        buffer.getInt(offset);
+        metaData.indexLen = buffer.getInt(offset);
         return metaData;
     }
 
