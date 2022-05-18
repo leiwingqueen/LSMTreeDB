@@ -71,7 +71,10 @@ public class BitcastDB {
     }
 
     public void stop() {
+        lock.writeLock().lock();
         running = false;
+        index.clear();
+        lock.writeLock().unlock();
     }
 
 

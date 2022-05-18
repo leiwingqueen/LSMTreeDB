@@ -16,7 +16,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public class LSMTreeDB {
     public static final int PART_SIZE = 1024;
     public static final int MEM_TABLE_MAX_SIZE = 10;
-    private String path;
     private TreeMap<String, Command> memTable;
     //实现的过程才慢慢理解，其实这个是为了实现WOC所需要的中间表,memTable先dump一份数据到immutableMemTable，
     // 然后再copy到ssTable，这样才能在实现不对memTable加锁的情况下并行持久化到磁盘
@@ -29,7 +28,6 @@ public class LSMTreeDB {
     ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
     public LSMTreeDB(String path) throws IOException {
-        this.path = path;
         this.memTable = new TreeMap<>();
         this.immutableMemTable = new TreeMap<>();
         this.ssTable = new SSTableImpl(0, PART_SIZE, path);
@@ -38,7 +36,10 @@ public class LSMTreeDB {
     }
 
     public void start() throws IOException {
+        lock.writeLock().lock();
         this.running = true;
+        reload();
+        lock.writeLock().unlock();
         final LSMTreeDB db = this;
         Thread checkPersist = new Thread(() -> {
             while (db.running) {
@@ -53,7 +54,6 @@ public class LSMTreeDB {
             }
         });
         checkPersist.start();
-        reload();
     }
 
     private void reload() throws IOException {
