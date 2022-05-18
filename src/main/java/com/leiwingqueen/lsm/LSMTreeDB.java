@@ -66,13 +66,14 @@ public class LSMTreeDB {
             Command command = opt.get();
             this.memTable.put(command.getKey(), command);
         }
+        ssTable.reload();
     }
 
     public void stop() {
         this.running = false;
         memTable.clear();
         immutableMemTable.clear();
-        ssTable = null;
+        ssTable.destroy();
     }
 
 

@@ -5,6 +5,13 @@ import java.util.Collection;
 import java.util.TreeMap;
 
 public interface Segment {
+    /**
+     * reload sparse index
+     *
+     * @throws IOException
+     */
+    void reload() throws IOException;
+
     //TODO:need to provide contains function with bloomFilter
     Command get(String key) throws IOException;
 

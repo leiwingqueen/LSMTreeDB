@@ -65,12 +65,19 @@ public class LSMTreeDBTest {
         for (int i = 0; i < 100; i++) {
             db.put(String.valueOf(i), String.valueOf(i));
         }
+        for (int i = 50; i < 100; i++) {
+            db.remove(String.valueOf(i));
+        }
         db.memTablePersist();
         db.stop();
         db.start();
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 50; i++) {
             Optional<String> opt = db.get(String.valueOf(i));
             Assert.assertEquals(String.valueOf(i), opt.get());
+        }
+        for (int i = 50; i < 100; i++) {
+            Optional<String> opt = db.get(String.valueOf(i));
+            Assert.assertEquals(false, opt.isPresent());
         }
     }
 
@@ -81,11 +88,18 @@ public class LSMTreeDBTest {
         for (int i = 0; i < 100; i++) {
             db.put(String.valueOf(i), String.valueOf(i));
         }
+        for (int i = 50; i < 100; i++) {
+            db.remove(String.valueOf(i));
+        }
         db.stop();
         db.start();
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 50; i++) {
             Optional<String> opt = db.get(String.valueOf(i));
             Assert.assertEquals(String.valueOf(i), opt.get());
+        }
+        for (int i = 50; i < 100; i++) {
+            Optional<String> opt = db.get(String.valueOf(i));
+            Assert.assertEquals(false, opt.isPresent());
         }
     }
 }

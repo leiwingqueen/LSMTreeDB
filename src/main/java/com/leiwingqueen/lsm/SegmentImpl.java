@@ -24,8 +24,9 @@ public class SegmentImpl implements Segment {
         this.partSize = partSize;
     }
 
+    @Override
     public void reload() throws IOException {
-        String filename = FileUtil.buildFilename(path, segmentId + ".segment");
+        String filename = FileUtil.buildFilename(path, String.valueOf(segmentId));
         reader = new RandomAccessFile(filename, "r");
         if (reader.length() < SegmentMetaData.META_DATA_SIZE) {
             log.error("read segment metadata fail");

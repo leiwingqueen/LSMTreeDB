@@ -1,10 +1,9 @@
 package com.leiwingqueen.lsm;
 
+import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Deque;
-import java.util.LinkedList;
-import java.util.TreeMap;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class SSTableImpl {
     private int segmentId;
@@ -52,5 +51,26 @@ public class SSTableImpl {
         Segment segment = new SegmentImpl(path, segmentId, partSize);
         segment.persist(memTable);
         segments.offerFirst(segment);
+    }
+
+    public void reload() throws IOException {
+        segments.clear();
+        File dir = new File(path);
+        if (dir == null || !dir.isDirectory()) {
+            return;
+        }
+        File[] files = dir.listFiles();
+        List<File> fileList = Arrays.stream(files).filter(f -> !f.getName().equals("wal.log")).
+                sorted(Comparator.comparing(File::getName)).collect(Collectors.toList());
+        for (File file : fileList) {
+            int segmentId = Integer.parseInt(file.getName().split("\\.")[0]);
+            Segment segment = new SegmentImpl(path, segmentId, partSize);
+            segment.reload();
+            segments.offerLast(segment);
+        }
+    }
+
+    public void destroy() {
+        segments.clear();
     }
 }
