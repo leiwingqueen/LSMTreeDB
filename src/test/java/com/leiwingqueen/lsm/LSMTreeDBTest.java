@@ -7,11 +7,15 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static org.junit.Assert.*;
 
 @Slf4j
 public class LSMTreeDBTest {
+
+    public static final int THREAD_COUNT = 10;
 
     @Test
     public void persistAndGet() throws IOException {
@@ -87,6 +91,36 @@ public class LSMTreeDBTest {
         db.start();
         for (int i = 0; i < 100; i++) {
             db.put(String.valueOf(i), String.valueOf(i));
+        }
+        for (int i = 50; i < 100; i++) {
+            db.remove(String.valueOf(i));
+        }
+        db.stop();
+        db.start();
+        for (int i = 0; i < 50; i++) {
+            Optional<String> opt = db.get(String.valueOf(i));
+            Assert.assertEquals(String.valueOf(i), opt.get());
+        }
+        for (int i = 50; i < 100; i++) {
+            Optional<String> opt = db.get(String.valueOf(i));
+            Assert.assertEquals(false, opt.isPresent());
+        }
+    }
+
+    @Test
+    public void concurrent_readwrite() throws IOException {
+        LSMTreeDB db = new LSMTreeDB(TestConstant.TEST_PATH);
+        db.start();
+        ExecutorService executor = Executors.newFixedThreadPool(THREAD_COUNT);
+        for (int i = 0; i < 100; i++) {
+            final String key = String.valueOf(i);
+            executor.execute(() -> {
+                try {
+                    db.put(key, key);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
         }
         for (int i = 50; i < 100; i++) {
             db.remove(String.valueOf(i));
