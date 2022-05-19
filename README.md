@@ -1,7 +1,17 @@
 # LSMTreeDB
+
 make a simple db with LSMTree
 
+# key process
+
+## memTable
+
+## immutableMemTable
+
+## 
+
 # reference
+
 [Understanding LSM Trees: What Powers Write-Heavy Databases](https://yetanotherdevblog.com/lsm/)
 
 [bloom-filters](https://yetanotherdevblog.com/bloom-filters/)

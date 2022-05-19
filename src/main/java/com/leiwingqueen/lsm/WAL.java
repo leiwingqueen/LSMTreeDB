@@ -9,4 +9,6 @@ public interface WAL {
     Optional<Command> read() throws IOException;
 
     void readSeek(long pos) throws IOException;
+
+    void clear() throws IOException;
 }

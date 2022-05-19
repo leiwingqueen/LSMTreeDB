@@ -164,7 +164,7 @@ public class LSMTreeDB {
     }
 
     /**
-     * memTable持久化
+     * memTable persistent
      */
     private void doMemTablePersist() throws IOException {
         log.info("memTable persist[start]...");
@@ -175,11 +175,14 @@ public class LSMTreeDB {
             Command command = entry.getValue();
             immutableMemTable.put(key, command);
         }
+        //TODO:what to do if immutableMemTable drop the data before persist?
         memTable.clear();
         lock.writeLock().unlock();
         ssTable.persistent(immutableMemTable);
         lock.writeLock().lock();
         immutableMemTable.clear();
+        //clear the wal
+        wal.clear();
         lock.writeLock().unlock();
         log.info("memTable persist[finish]...");
     }

@@ -35,6 +35,7 @@ public class SegmentImpl implements Segment {
         byte[] buffer = new byte[SegmentMetaData.META_DATA_SIZE];
         reader.read(buffer, 0, SegmentMetaData.META_DATA_SIZE);
         SegmentMetaData metaData = SegmentMetaData.readBytes(buffer);
+        log.info("read metaData...{}", metaData);
         reader.seek(metaData.getIndexOffset());
         byte[] indexBuffer = new byte[metaData.getIndexLen()];
         reader.read(indexBuffer);

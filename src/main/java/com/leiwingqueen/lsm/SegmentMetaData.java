@@ -58,4 +58,14 @@ public class SegmentMetaData {
     public int getIndexLen() {
         return indexLen;
     }
+
+    @Override
+    public String toString() {
+        return "SegmentMetaData{" +
+                "dataOffset=" + dataOffset +
+                ", dataLen=" + dataLen +
+                ", indexOffset=" + indexOffset +
+                ", indexLen=" + indexLen +
+                '}';
+    }
 }
