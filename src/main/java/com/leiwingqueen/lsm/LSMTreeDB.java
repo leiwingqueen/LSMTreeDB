@@ -6,6 +6,7 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
@@ -27,12 +28,15 @@ public class LSMTreeDB {
 
     ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
+    AtomicBoolean persistFlag;
+
     public LSMTreeDB(String path) throws IOException {
         this.memTable = new TreeMap<>();
         this.immutableMemTable = new TreeMap<>();
         this.ssTable = new SSTableImpl(0, PART_SIZE, path);
         this.running = false;
         this.wal = new WALImpl(path);
+        this.persistFlag = new AtomicBoolean(false);
     }
 
     public void start() throws IOException {
@@ -70,10 +74,19 @@ public class LSMTreeDB {
     }
 
     public void stop() {
+        lock.writeLock().lock();
         this.running = false;
         memTable.clear();
-        immutableMemTable.clear();
         ssTable.destroy();
+        lock.writeLock().unlock();
+        while (persistFlag.get()) {
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                log.error(e.getMessage(), e);
+            }
+        }
+        immutableMemTable.clear();
     }
 
 
@@ -157,7 +170,7 @@ public class LSMTreeDB {
     }
 
     public void memTablePersist() throws IOException {
-        if (memTable.size() <= MEM_TABLE_MAX_SIZE) {
+        if (memTable.size() <= MEM_TABLE_MAX_SIZE || persistFlag.get()) {
             return;
         }
         doMemTablePersist();
@@ -167,6 +180,9 @@ public class LSMTreeDB {
      * memTable persistent
      */
     private void doMemTablePersist() throws IOException {
+        if (!persistFlag.compareAndExchange(false, true)) {
+            return;
+        }
         log.info("memTable persist[start]...");
         //memTable->immutableMemTable
         lock.writeLock().lock();
@@ -184,6 +200,7 @@ public class LSMTreeDB {
         //clear the wal
         wal.clear();
         lock.writeLock().unlock();
+        persistFlag.compareAndExchange(true, false);
         log.info("memTable persist[finish]...");
     }
 }

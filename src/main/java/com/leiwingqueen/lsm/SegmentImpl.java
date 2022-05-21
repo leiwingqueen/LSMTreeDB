@@ -35,7 +35,7 @@ public class SegmentImpl implements Segment {
         byte[] buffer = new byte[SegmentMetaData.META_DATA_SIZE];
         reader.read(buffer, 0, SegmentMetaData.META_DATA_SIZE);
         SegmentMetaData metaData = SegmentMetaData.readBytes(buffer);
-        log.info("read metaData...{}", metaData);
+        log.info("read metaData...segmentId:{},metaData:{}", segmentId, metaData);
         reader.seek(metaData.getIndexOffset());
         byte[] indexBuffer = new byte[metaData.getIndexLen()];
         reader.read(indexBuffer);
@@ -100,6 +100,7 @@ public class SegmentImpl implements Segment {
 
     @Override
     public void persist(TreeMap<String, Command> memTable) throws IOException {
+        log.info("persist[start]...segmentId:{},memTable size:{}", segmentId, memTable.size());
         String filename = FileUtil.buildFilename(path, String.valueOf(segmentId));
         RandomAccessFile writer = new RandomAccessFile(filename, "rw");
         this.reader = new RandomAccessFile(filename, "r");
@@ -140,5 +141,6 @@ public class SegmentImpl implements Segment {
         writer.seek(0);
         writer.write(metaData.toByteArray());
         writer.close();
+        log.info("persist[success]...segmentId:{},memTable size:{}", segmentId, memTable.size());
     }
 }
