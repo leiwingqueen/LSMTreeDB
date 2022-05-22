@@ -80,6 +80,7 @@ public class LSMTreeDB {
         ssTable.destroy();
         lock.writeLock().unlock();
         while (persistFlag.get()) {
+            log.error("persist to ssTable...wait");
             try {
                 Thread.sleep(500);
             } catch (InterruptedException e) {
@@ -180,7 +181,7 @@ public class LSMTreeDB {
      * memTable persistent
      */
     private void doMemTablePersist() throws IOException {
-        if (!persistFlag.compareAndExchange(false, true)) {
+        if (persistFlag.compareAndExchange(false, true)) {
             return;
         }
         log.info("memTable persist[start]...");
