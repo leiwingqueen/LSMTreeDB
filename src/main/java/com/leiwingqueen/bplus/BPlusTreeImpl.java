@@ -2,12 +2,12 @@ package com.leiwingqueen.bplus;
 
 public class BPlusTreeImpl<K extends Comparable, V> implements BPlusTree<K, V> {
 
-    public static final int MAX_SIZE = 3;
+    public static final int MAX_DEGREE = 3;
 
     private BPlusTreeNode root;
 
     public BPlusTreeImpl() {
-        root = new BPlusTreeLeafNode<K, V>(MAX_SIZE);
+        root = new BPlusTreeLeafNode<K, V>(MAX_DEGREE - 1);
     }
 
     @Override
@@ -23,7 +23,16 @@ public class BPlusTreeImpl<K extends Comparable, V> implements BPlusTree<K, V> {
         if (node.size < node.maxSize) {
             return node.insert(key, value);
         }
-
+        // need to split
+        BPlusTreeLeafNode<K, V> tmpNode = new BPlusTreeLeafNode<>(MAX_DEGREE);
+        node.moveAllTo(tmpNode);
+        tmpNode.insert(key, value);
+        BPlusTreeLeafNode<K, V> splitNode = new BPlusTreeLeafNode<>(MAX_DEGREE - 1);
+        node.setNext(splitNode);
+        tmpNode.moveHalfTo(splitNode);
+        tmpNode.moveAllTo(node);
+        // pKey need to add to the parent node
+        K pKey = splitNode.getKey(0);
         return false;
     }
 

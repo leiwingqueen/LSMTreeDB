@@ -8,11 +8,11 @@ public class BPlusTreeInternalNode<K extends Comparable> extends BPlusTreeNode {
     private Object[] keys;
     private BPlusTreeNode[] values;
 
-    public BPlusTreeInternalNode(int maxDegree) {
+    public BPlusTreeInternalNode(int maxSize) {
         this.size = 0;
-        this.maxSize = maxDegree;
-        this.keys = new Object[maxDegree];
-        this.values = new BPlusTreeNode[maxDegree];
+        this.maxSize = maxSize;
+        this.keys = new Object[maxSize];
+        this.values = new BPlusTreeNode[maxSize];
     }
 
     public K getKey(int idx) {
