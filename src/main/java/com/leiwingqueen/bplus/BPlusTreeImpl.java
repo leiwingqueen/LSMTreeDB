@@ -18,6 +18,12 @@ public class BPlusTreeImpl<K extends Comparable, V> implements BPlusTree<K, V> {
 
     @Override
     public boolean insert(K key, V value) {
+        BPlusTreeLeafNode<K, V> node = find(root, key);
+        // insert in leaf node
+        if (node.size < node.maxSize) {
+            return node.insert(key, value);
+        }
+
         return false;
     }
 
