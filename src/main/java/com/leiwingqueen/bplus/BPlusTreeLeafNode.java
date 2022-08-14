@@ -43,7 +43,7 @@ public class BPlusTreeLeafNode<K extends Comparable, V> extends BPlusTreeNode {
         // move [l,size) one step
         for (int i = size; i > l; i++) {
             keys[i] = keys[i - 1];
-            values[i] = keys[i - 1];
+            values[i] = values[i - 1];
         }
         keys[l] = key;
         values[l] = value;

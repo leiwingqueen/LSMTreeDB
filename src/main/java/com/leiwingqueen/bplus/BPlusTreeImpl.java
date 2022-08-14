@@ -26,14 +26,17 @@ public class BPlusTreeImpl<K extends Comparable, V> implements BPlusTree<K, V> {
         // need to split
         BPlusTreeLeafNode<K, V> tmpNode = new BPlusTreeLeafNode<>(MAX_DEGREE);
         node.moveAllTo(tmpNode);
-        tmpNode.insert(key, value);
+        if (!tmpNode.insert(key, value)) {
+            return false;
+        }
         BPlusTreeLeafNode<K, V> splitNode = new BPlusTreeLeafNode<>(MAX_DEGREE - 1);
         node.setNext(splitNode);
         tmpNode.moveHalfTo(splitNode);
         tmpNode.moveAllTo(node);
         // pKey need to add to the parent node
         K pKey = splitNode.getKey(0);
-        return false;
+        insertInParent(node, pKey, splitNode);
+        return true;
     }
 
     private BPlusTreeLeafNode<K, V> find(BPlusTreeNode node, K key) {
@@ -82,5 +85,33 @@ public class BPlusTreeImpl<K extends Comparable, V> implements BPlusTree<K, V> {
             }
         }
         return null;
+    }
+
+    // referer to book <<database system concept>>
+    private void insertInParent(BPlusTreeNode node, K key, BPlusTreeNode pointer) {
+        if (node.parent == null) {
+            BPlusTreeInternalNode<K> newRoot = new BPlusTreeInternalNode<>(MAX_DEGREE);
+            newRoot.insert(key, pointer);
+            node.parent = newRoot;
+            this.root = newRoot;
+            return;
+        }
+        BPlusTreeInternalNode<K> parent = (BPlusTreeInternalNode<K>) node.parent;
+        if (parent.size < parent.maxSize) {
+            parent.insert(key, pointer);
+            pointer.parent = parent;
+            return;
+        }
+        // need to split
+        BPlusTreeInternalNode<K> tmpNode = new BPlusTreeInternalNode<>(MAX_DEGREE + 1);
+        parent.moveAllTo(tmpNode);
+        tmpNode.insert(key, pointer);
+        BPlusTreeInternalNode<K> splitNode = new BPlusTreeInternalNode<>(MAX_DEGREE);
+        tmpNode.moveHalfTo(splitNode);
+        tmpNode.moveAllTo(parent);
+        // new key need to add parent
+        K k_ = splitNode.getKey(0);
+        BPlusTreeNode p_ = splitNode.getPointer(0);
+        insertInParent(parent, k_, p_);
     }
 }
