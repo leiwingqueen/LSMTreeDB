@@ -12,6 +12,8 @@ public class BPlusTreeImplTest {
     public void get() {
         BPlusTree<Integer, Integer> tree = new BPlusTreeImpl<>();
         tree.insert(1, 1);
+        tree.insert(2, 2);
+        tree.insert(3, 3);
         Integer v = tree.get(1);
         Assert.assertEquals(1, v.intValue());
     }

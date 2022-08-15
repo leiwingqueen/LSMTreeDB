@@ -68,12 +68,12 @@ public class BPlusTreeImpl<K extends Comparable, V> implements BPlusTree<K, V> {
 
     private V getValueInLeaf(BPlusTreeLeafNode<K, V> node, K key) {
         int idx = 0;
-        if (key.compareTo(node.getKey(0)) < 0
+        if (node.size == 0 || key.compareTo(node.getKey(0)) < 0
                 || key.compareTo(node.getValue(node.size - 1)) > 0) {
             return null;
         }
         int l = 0, r = node.size - 1;
-        while (l < r) {
+        while (l <= r) {
             int mid = l + (r - l) / 2;
             K selectKey = node.getKey(mid);
             if (selectKey.compareTo(key) == 0) {
@@ -90,7 +90,7 @@ public class BPlusTreeImpl<K extends Comparable, V> implements BPlusTree<K, V> {
     // referer to book <<database system concept>>
     private void insertInParent(BPlusTreeNode node, K key, BPlusTreeNode pointer) {
         if (node.parent == null) {
-            BPlusTreeInternalNode<K> newRoot = new BPlusTreeInternalNode<>(MAX_DEGREE);
+            BPlusTreeInternalNode<K> newRoot = new BPlusTreeInternalNode<>(node, MAX_DEGREE);
             newRoot.insert(key, pointer);
             node.parent = newRoot;
             this.root = newRoot;
@@ -103,10 +103,10 @@ public class BPlusTreeImpl<K extends Comparable, V> implements BPlusTree<K, V> {
             return;
         }
         // need to split
-        BPlusTreeInternalNode<K> tmpNode = new BPlusTreeInternalNode<>(MAX_DEGREE + 1);
+        BPlusTreeInternalNode<K> tmpNode = new BPlusTreeInternalNode<>(parent.getPointer(0), MAX_DEGREE + 1);
         parent.moveAllTo(tmpNode);
         tmpNode.insert(key, pointer);
-        BPlusTreeInternalNode<K> splitNode = new BPlusTreeInternalNode<>(MAX_DEGREE);
+        BPlusTreeInternalNode<K> splitNode = new BPlusTreeInternalNode<>(null, MAX_DEGREE);
         tmpNode.moveHalfTo(splitNode);
         tmpNode.moveAllTo(parent);
         // new key need to add parent

@@ -8,11 +8,13 @@ public class BPlusTreeInternalNode<K extends Comparable> extends BPlusTreeNode {
     private Object[] keys;
     private BPlusTreeNode[] values;
 
-    public BPlusTreeInternalNode(int maxSize) {
+    public BPlusTreeInternalNode(BPlusTreeNode node, int maxSize) {
         this.size = 0;
         this.maxSize = maxSize;
         this.keys = new Object[maxSize];
         this.values = new BPlusTreeNode[maxSize];
+        this.values[0] = node;
+        this.size++;
     }
 
     public K getKey(int idx) {
@@ -24,14 +26,15 @@ public class BPlusTreeInternalNode<K extends Comparable> extends BPlusTreeNode {
     }
 
     public boolean insert(K key, BPlusTreeNode pointer) {
-        if (getKey(size - 1).compareTo(key) < 0) {
+        //size>=1
+        if (size == 1 || getKey(size - 1).compareTo(key) < 0) {
             keys[size] = key;
             values[size] = pointer;
             size++;
             return true;
         }
         // find the first one>key
-        int l = 0, r = size - 1;
+        int l = 1, r = size - 1;
         while (l < r) {
             int mid = l + (r - l) / 2;
             if (getKey(mid).compareTo(key) == 0) {
@@ -49,6 +52,7 @@ public class BPlusTreeInternalNode<K extends Comparable> extends BPlusTreeNode {
         }
         keys[l] = key;
         values[l] = pointer;
+        size++;
         return true;
     }
 
@@ -64,7 +68,7 @@ public class BPlusTreeInternalNode<K extends Comparable> extends BPlusTreeNode {
     }
 
     public void moveAllTo(BPlusTreeInternalNode<K> recipient) {
-        for (int i = 0; i < size; i++) {
+        for (int i = 1; i < size; i++) {
             K key = getKey(i);
             BPlusTreeNode value = getPointer(i);
             recipient.insert(key, value);

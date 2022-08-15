@@ -22,7 +22,7 @@ public class BPlusTreeLeafNode<K extends Comparable, V> extends BPlusTreeNode {
     }
 
     public boolean insert(K key, V value) {
-        if (getKey(size - 1).compareTo(key) < 0) {
+        if (size == 0 || getKey(size - 1).compareTo(key) < 0) {
             keys[size] = key;
             values[size] = value;
             size++;
