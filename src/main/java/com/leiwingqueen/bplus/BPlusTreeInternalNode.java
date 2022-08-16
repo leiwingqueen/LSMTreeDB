@@ -2,9 +2,11 @@ package com.leiwingqueen.bplus;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Arrays;
 
 @Slf4j
-@Data
 public class BPlusTreeInternalNode<K extends Comparable> extends BPlusTreeNode {
     //keys[0] is useless
     private Object[] keys;
@@ -100,5 +102,13 @@ public class BPlusTreeInternalNode<K extends Comparable> extends BPlusTreeNode {
         int splitIdx = size / 2;
         this.size = 0;
         return recipient.getKey(splitIdx);
+    }
+
+    @Override
+    public String toString() {
+        return "BPlusTreeInternalNode{" +
+                "keys=" + StringUtils.join(keys, ",", 0, size) +
+                ", values=" + StringUtils.join(values, ",", 0, size) +
+                '}';
     }
 }

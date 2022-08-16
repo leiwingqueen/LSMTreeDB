@@ -2,9 +2,11 @@ package com.leiwingqueen.bplus;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Arrays;
 
 @Slf4j
-@Data
 public class BPlusTreeLeafNode<K extends Comparable, V> extends BPlusTreeNode {
     private Object[] keys;
     private Object[] values;
@@ -30,7 +32,7 @@ public class BPlusTreeLeafNode<K extends Comparable, V> extends BPlusTreeNode {
         if (size == 0 || getKey(size - 1).compareTo(key) < 0) {
             keys[size] = key;
             values[size] = value;
-            log.info("insert node into left node,idx:{},key:{},value:{}", size, key, value);
+            log.info("insert node into leaf node,idx:{},key:{},value:{}", size, key, value);
             size++;
             return true;
         }
@@ -53,7 +55,7 @@ public class BPlusTreeLeafNode<K extends Comparable, V> extends BPlusTreeNode {
         }
         keys[l] = key;
         values[l] = value;
-        log.info("insert node into left node,idx:{},key:{},value:{}", l, key, value);
+        log.info("insert node into leaf node,idx:{},key:{},value:{}", l, key, value);
         return true;
     }
 
@@ -61,18 +63,24 @@ public class BPlusTreeLeafNode<K extends Comparable, V> extends BPlusTreeNode {
         // split into two parts.[0,splitIdx) and [splitIdx,size)
         int splitIdx = size / 2;
         for (int i = splitIdx; i < size; i++) {
-            K key = getKey(i);
-            V value = getValue(i);
-            recipient.insert(key, value);
+            recipient.keys[recipient.size] = getKey(i);
+            recipient.values[recipient.size] = getValue(i);
+            //K key = getKey(i);
+            //V value = getValue(i);
+            recipient.size++;
+            //recipient.insert(key, value);
         }
         this.size -= size - splitIdx;
     }
 
     public void moveAllTo(BPlusTreeLeafNode recipient) {
         for (int i = 0; i < size; i++) {
-            K key = getKey(i);
-            V value = getValue(i);
-            recipient.insert(key, value);
+            recipient.keys[recipient.size] = getKey(i);
+            recipient.values[recipient.size] = getValue(i);
+            recipient.size++;
+            //K key = getKey(i);
+            //V value = getValue(i);
+            //recipient.insert(key, value);
         }
         this.size = 0;
     }
@@ -80,5 +88,13 @@ public class BPlusTreeLeafNode<K extends Comparable, V> extends BPlusTreeNode {
 
     public void setNext(BPlusTreeNode next) {
         this.next = next;
+    }
+
+    @Override
+    public String toString() {
+        return "BPlusTreeLeafNode{" +
+                "keys=" + StringUtils.join(keys, ",", 0, size) +
+                ", values=" + StringUtils.join(keys, ",", 0, size) +
+                '}';
     }
 }

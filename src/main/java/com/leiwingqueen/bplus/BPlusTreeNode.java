@@ -1,5 +1,7 @@
 package com.leiwingqueen.bplus;
 
+import lombok.Data;
+
 public class BPlusTreeNode {
     protected int size;
     protected int maxSize;
