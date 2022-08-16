@@ -17,8 +17,4 @@ public class BPlusTreeImplTest {
         Integer v = tree.get(1);
         Assert.assertEquals(1, v.intValue());
     }
-
-    @Test
-    public void insert() {
-    }
 }

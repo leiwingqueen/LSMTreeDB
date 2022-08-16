@@ -1,5 +1,10 @@
 package com.leiwingqueen.bplus;
 
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Data
 public class BPlusTreeLeafNode<K extends Comparable, V> extends BPlusTreeNode {
     private Object[] keys;
     private Object[] values;
@@ -7,10 +12,10 @@ public class BPlusTreeLeafNode<K extends Comparable, V> extends BPlusTreeNode {
 
     public BPlusTreeLeafNode(int maxSize) {
         // left node has only n-1 keys
-        this.maxSize = maxSize - 1;
+        this.maxSize = maxSize;
         this.size = 0;
-        keys = new Object[maxSize - 1];
-        values = new Object[maxSize - 1];
+        keys = new Object[maxSize];
+        values = new Object[maxSize];
     }
 
     public K getKey(int idx) {
@@ -25,6 +30,7 @@ public class BPlusTreeLeafNode<K extends Comparable, V> extends BPlusTreeNode {
         if (size == 0 || getKey(size - 1).compareTo(key) < 0) {
             keys[size] = key;
             values[size] = value;
+            log.info("insert node into left node,idx:{},key:{},value:{}", size, key, value);
             size++;
             return true;
         }
@@ -47,6 +53,7 @@ public class BPlusTreeLeafNode<K extends Comparable, V> extends BPlusTreeNode {
         }
         keys[l] = key;
         values[l] = value;
+        log.info("insert node into left node,idx:{},key:{},value:{}", l, key, value);
         return true;
     }
 

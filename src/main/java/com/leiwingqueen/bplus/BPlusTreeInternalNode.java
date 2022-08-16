@@ -1,7 +1,9 @@
 package com.leiwingqueen.bplus;
 
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Data
 public class BPlusTreeInternalNode<K extends Comparable> extends BPlusTreeNode {
     //keys[0] is useless

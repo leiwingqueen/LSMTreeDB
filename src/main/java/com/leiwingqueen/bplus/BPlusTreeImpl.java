@@ -1,5 +1,8 @@
 package com.leiwingqueen.bplus;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class BPlusTreeImpl<K extends Comparable, V> implements BPlusTree<K, V> {
 
     public static final int MAX_DEGREE = 3;
@@ -24,6 +27,7 @@ public class BPlusTreeImpl<K extends Comparable, V> implements BPlusTree<K, V> {
             return node.insert(key, value);
         }
         // need to split
+        log.info("left node need to split...key:{},value:{}", key, value);
         BPlusTreeLeafNode<K, V> tmpNode = new BPlusTreeLeafNode<>(MAX_DEGREE);
         node.moveAllTo(tmpNode);
         if (!tmpNode.insert(key, value)) {
@@ -35,6 +39,7 @@ public class BPlusTreeImpl<K extends Comparable, V> implements BPlusTree<K, V> {
         tmpNode.moveAllTo(node);
         // pKey need to add to the parent node
         K pKey = splitNode.getKey(0);
+        log.info("left node split to {} and {}.split key:{}", node, splitNode, pKey);
         insertInParent(node, pKey, splitNode);
         return true;
     }
