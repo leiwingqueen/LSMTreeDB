@@ -8,13 +8,11 @@ public class BPlusTreeInternalNode<K extends Comparable> extends BPlusTreeNode {
     private Object[] keys;
     private BPlusTreeNode[] values;
 
-    public BPlusTreeInternalNode(BPlusTreeNode node, int maxSize) {
+    public BPlusTreeInternalNode(int maxSize) {
         this.size = 0;
         this.maxSize = maxSize;
         this.keys = new Object[maxSize];
         this.values = new BPlusTreeNode[maxSize];
-        this.values[0] = node;
-        this.size++;
     }
 
     public K getKey(int idx) {
@@ -56,23 +54,49 @@ public class BPlusTreeInternalNode<K extends Comparable> extends BPlusTreeNode {
         return true;
     }
 
+    /*
+     * Populate new root page with old_value + new_key & new_value
+     * When the insertion cause overflow from leaf page all the way upto the root
+     * page, you should create a new root page and populate its elements.
+     * NOTE: This method is only called within InsertIntoParent()(b_plus_tree.cpp)
+     *
+     * refer to cmu bustub api design
+     */
+    void populateNewRoot(BPlusTreeNode oldValue, K newKey, BPlusTreeNode newValue) {
+        this.values[0] = oldValue;
+        this.values[1] = newValue;
+        this.keys[1] = newKey;
+        this.size += 2;
+    }
+
     public void moveHalfTo(BPlusTreeInternalNode<K> recipient) {
         // split into two parts.[0,splitIdx) and [splitIdx,size)
         int splitIdx = size / 2;
-        for (int i = splitIdx; i < size; i++) {
-            K key = getKey(i);
-            BPlusTreeNode value = getPointer(i);
-            recipient.insert(key, value);
+        recipient.values[0] = getPointer(splitIdx);
+        recipient.size++;
+        for (int i = splitIdx + 1; i < size; i++) {
+            recipient.keys[recipient.size] = getKey(i);
+            recipient.values[recipient.size] = getPointer(i);
+            recipient.size++;
         }
         this.size -= size - splitIdx;
     }
 
-    public void moveAllTo(BPlusTreeInternalNode<K> recipient) {
+    /**
+     * move all entities to the recipient
+     *
+     * @param recipient
+     * @return the middle key
+     */
+    public K moveAllTo(BPlusTreeInternalNode<K> recipient) {
         for (int i = 1; i < size; i++) {
             K key = getKey(i);
             BPlusTreeNode value = getPointer(i);
             recipient.insert(key, value);
         }
+        //split to [0,splitIdx),[splitIdx,size)
+        int splitIdx = size / 2;
         this.size = 0;
+        return recipient.getKey(splitIdx);
     }
 }
