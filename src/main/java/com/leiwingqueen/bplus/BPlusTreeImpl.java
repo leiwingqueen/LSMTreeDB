@@ -27,7 +27,7 @@ public class BPlusTreeImpl<K extends Comparable, V> implements BPlusTree<K, V> {
             return node.insert(key, value);
         }
         // need to split
-        log.info("left node need to split...key:{},value:{}", key, value);
+        log.info("leaf node need to split...key:{},value:{}", key, value);
         BPlusTreeLeafNode<K, V> tmpNode = new BPlusTreeLeafNode<>(MAX_DEGREE);
         node.moveAllTo(tmpNode);
         if (!tmpNode.insert(key, value)) {
@@ -39,7 +39,7 @@ public class BPlusTreeImpl<K extends Comparable, V> implements BPlusTree<K, V> {
         tmpNode.moveAllTo(node);
         // pKey need to add to the parent node
         K pKey = splitNode.getKey(0);
-        log.info("left node split to {} and {}.split key:{}", node, splitNode, pKey);
+        log.info("leaf node split to {} and {}.split key:{}", node, splitNode, pKey);
         insertInParent(node, pKey, splitNode);
         return true;
     }
@@ -72,7 +72,6 @@ public class BPlusTreeImpl<K extends Comparable, V> implements BPlusTree<K, V> {
     }
 
     private V getValueInLeaf(BPlusTreeLeafNode<K, V> node, K key) {
-        int idx = 0;
         if (node.size == 0 || key.compareTo(node.getKey(0)) < 0
                 || key.compareTo(node.getValue(node.size - 1)) > 0) {
             return null;
@@ -82,7 +81,7 @@ public class BPlusTreeImpl<K extends Comparable, V> implements BPlusTree<K, V> {
             int mid = l + (r - l) / 2;
             K selectKey = node.getKey(mid);
             if (selectKey.compareTo(key) == 0) {
-                return node.getValue(idx);
+                return node.getValue(mid);
             } else if (selectKey.compareTo(key) > 0) {
                 r = mid - 1;
             } else {
@@ -117,6 +116,7 @@ public class BPlusTreeImpl<K extends Comparable, V> implements BPlusTree<K, V> {
         BPlusTreeInternalNode<K> splitNode = new BPlusTreeInternalNode<>(MAX_DEGREE);
         tmpNode.moveHalfTo(splitNode);
         tmpNode.moveAllTo(parent);
+        log.info("inner node split to {} and {}.split key:{}", parent, splitNode, midKey);
         // new key need to add parent
         insertInParent(parent, midKey, splitNode);
     }

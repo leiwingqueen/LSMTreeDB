@@ -102,7 +102,8 @@ public class BPlusTreeInternalNode<K extends Comparable> extends BPlusTreeNode {
             recipient.size++;
         }
         //split to [0,splitIdx),[splitIdx,size)
-        int splitIdx = size / 2;
+        // need to add one because we need to add the new key later
+        int splitIdx = (recipient.size + 1) / 2;
         this.size = 0;
         return recipient.getKey(splitIdx);
     }

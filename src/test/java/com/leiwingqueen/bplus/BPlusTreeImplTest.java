@@ -11,12 +11,12 @@ public class BPlusTreeImplTest {
     @Test
     public void get() {
         BPlusTree<Integer, Integer> tree = new BPlusTreeImpl<>();
-        tree.insert(1, 1);
-        tree.insert(2, 2);
-        tree.insert(3, 3);
-        tree.insert(4, 4);
-        tree.insert(5, 5);
-        Integer v = tree.get(1);
-        Assert.assertEquals(1, v.intValue());
+        for (int i = 1; i <= 5; i++) {
+            tree.insert(i, i);
+        }
+        for (int i = 1; i <= 5; i++) {
+            Integer v = tree.get(i);
+            Assert.assertEquals(i, v.intValue());
+        }
     }
 }
