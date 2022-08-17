@@ -94,18 +94,20 @@ public class BPlusTreeImpl<K extends Comparable, V> implements BPlusTree<K, V> {
 
     // referer to book <<database system concept>>
     private void insertInParent(BPlusTreeNode node, K key, BPlusTreeNode pointer) {
+        log.info("add node to parent...parent:{},key:{}", node.parent, key);
         if (node.parent == null) {
             BPlusTreeInternalNode<K> newRoot = new BPlusTreeInternalNode<>(MAX_DEGREE);
             newRoot.populateNewRoot(node, key, pointer);
             //newRoot.insert(key, pointer);
             node.parent = newRoot;
             this.root = newRoot;
+            pointer.parent = newRoot;
             return;
         }
         BPlusTreeInternalNode<K> parent = (BPlusTreeInternalNode<K>) node.parent;
+        pointer.parent = parent;
         if (parent.size < parent.maxSize) {
             parent.insert(key, pointer);
-            pointer.parent = parent;
             return;
         }
         // need to split

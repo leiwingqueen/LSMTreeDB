@@ -93,10 +93,13 @@ public class BPlusTreeInternalNode<K extends Comparable> extends BPlusTreeNode {
      * @return the middle key
      */
     public K moveAllTo(BPlusTreeInternalNode<K> recipient) {
-        for (int i = 1; i < size; i++) {
-            K key = getKey(i);
-            BPlusTreeNode value = getPointer(i);
-            recipient.insert(key, value);
+        for (int i = 0; i < size; i++) {
+            recipient.keys[recipient.size] = getKey(i);
+            recipient.values[recipient.size] = getPointer(i);
+            //K key = getKey(i);
+            //BPlusTreeNode value = getPointer(i);
+            //recipient.insert(key, value);
+            recipient.size++;
         }
         //split to [0,splitIdx),[splitIdx,size)
         int splitIdx = size / 2;
