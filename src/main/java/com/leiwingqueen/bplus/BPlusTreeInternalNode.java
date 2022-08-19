@@ -55,6 +55,16 @@ public class BPlusTreeInternalNode<K extends Comparable> extends BPlusTreeNode {
         return true;
     }
 
+    public int remove(int index) {
+        // move the entries move to the left where the entries right to the remove key
+        for (int i = index; i < size - 1; i++) {
+            keys[i] = keys[i + 1];
+            values[i] = values[i + 1];
+        }
+        size--;
+        return size;
+    }
+
     /*
      * Populate new root page with old_value + new_key & new_value
      * When the insertion cause overflow from leaf page all the way upto the root

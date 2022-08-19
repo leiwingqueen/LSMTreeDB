@@ -11,6 +11,9 @@ public interface BPlusTree<K, V> {
     // insert a key-value pair into B+ tree
     boolean insert(K key, V value);
 
+    // remove key
+    boolean remove(K key);
+
     // index iterator
     Iterator<Pair<K, V>> begin();
 

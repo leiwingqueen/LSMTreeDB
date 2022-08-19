@@ -56,6 +56,27 @@ public class BPlusTreeLeafNode<K extends Comparable, V> extends BPlusTreeNode {
         return true;
     }
 
+    /**
+     * First look through leaf page to see whether delete key exist or not. If
+     * exist, perform deletion, otherwise return immediately.
+     * NOTE: store key&value pair continuously after deletion
+     *
+     * @return page size after deletion
+     */
+    public int remove(K key) {
+        int idx = keyIndex(key);
+        if (idx < 0) {
+            return size;
+        }
+        // move the entries move to the left where the entries right to the remove key
+        for (int i = idx; i < size - 1; i++) {
+            keys[i] = keys[i + 1];
+            values[i] = values[i + 1];
+        }
+        size--;
+        return size;
+    }
+
     // helper for insert operation to split node
     public void moveHalfTo(BPlusTreeLeafNode recipient) {
         // split into two parts.[0,splitIdx) and [splitIdx,size)

@@ -48,6 +48,11 @@ public class BPlusTreeImpl<K extends Comparable, V> implements BPlusTree<K, V> {
     }
 
     @Override
+    public boolean remove(K key) {
+        return false;
+    }
+
+    @Override
     public Iterator<Pair<K, V>> begin() {
         // get the left most leaf node
         BPlusTreeNode node = this.root;
@@ -150,6 +155,19 @@ public class BPlusTreeImpl<K extends Comparable, V> implements BPlusTree<K, V> {
         log.info("inner node split to {} and {}.split key:{}", parent, splitNode, midKey);
         // new key need to add parent
         insertInParent(parent, midKey, splitNode);
+    }
+
+    // referer to book <<database system concept>> pseudocode
+    private boolean delete(K key) {
+        BPlusTreeLeafNode<K, V> leafNode = find(root, key);
+        if (leafNode.keyIndex(key) < 0) {
+            return false;
+        }
+        deleteEntry(leafNode, key);
+        return true;
+    }
+
+    private void deleteEntry(BPlusTreeNode node, K key) {
     }
 
     private static class BPlusTreeIterator<K extends Comparable, V> implements Iterator<Pair<K, V>> {
