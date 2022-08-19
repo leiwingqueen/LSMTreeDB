@@ -62,10 +62,7 @@ public class BPlusTreeLeafNode<K extends Comparable, V> extends BPlusTreeNode {
         for (int i = splitIdx; i < size; i++) {
             recipient.keys[recipient.size] = getKey(i);
             recipient.values[recipient.size] = getValue(i);
-            //K key = getKey(i);
-            //V value = getValue(i);
             recipient.size++;
-            //recipient.insert(key, value);
         }
         recipient.parent = this.parent;
         this.size -= size - splitIdx;
@@ -76,9 +73,6 @@ public class BPlusTreeLeafNode<K extends Comparable, V> extends BPlusTreeNode {
             recipient.keys[recipient.size] = getKey(i);
             recipient.values[recipient.size] = getValue(i);
             recipient.size++;
-            //K key = getKey(i);
-            //V value = getValue(i);
-            //recipient.insert(key, value);
         }
         recipient.parent = this.parent;
         this.size = 0;

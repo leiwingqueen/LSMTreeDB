@@ -100,9 +100,6 @@ public class BPlusTreeInternalNode<K extends Comparable> extends BPlusTreeNode {
             recipient.keys[recipient.size] = getKey(i);
             recipient.values[recipient.size] = getPointer(i);
             getPointer(i).parent = recipient;
-            //K key = getKey(i);
-            //BPlusTreeNode value = getPointer(i);
-            //recipient.insert(key, value);
             recipient.size++;
         }
         //split to [0,splitIdx),[splitIdx,size)
