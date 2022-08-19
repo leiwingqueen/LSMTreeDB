@@ -45,6 +45,20 @@ public class BPlusTreeImpl<K extends Comparable, V> implements BPlusTree<K, V> {
         return true;
     }
 
+    @Override
+    public int getDepth() {
+        if (this.root == null) {
+            return 0;
+        }
+        int depth = 1;
+        BPlusTreeNode node = this.root;
+        while (node instanceof BPlusTreeInternalNode) {
+            node = ((BPlusTreeInternalNode<K>) node).getPointer(0);
+            depth++;
+        }
+        return depth;
+    }
+
     private BPlusTreeLeafNode<K, V> find(BPlusTreeNode node, K key) {
         if (node instanceof BPlusTreeLeafNode) {
             return (BPlusTreeLeafNode) node;

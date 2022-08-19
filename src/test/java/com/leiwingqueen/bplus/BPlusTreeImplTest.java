@@ -10,7 +10,7 @@ import static org.junit.Assert.*;
 public class BPlusTreeImplTest {
     @Test
     public void get() {
-        int n = 100;
+        int n = 1000;
         BPlusTree<Integer, Integer> tree = new BPlusTreeImpl<>();
         for (int i = 1; i <= n; i++) {
             tree.insert(i, i);
@@ -19,5 +19,6 @@ public class BPlusTreeImplTest {
             Integer v = tree.get(i);
             Assert.assertEquals(i, v == null ? -1 : v.intValue());
         }
+        log.info("depth:{}", tree.getDepth());
     }
 }
