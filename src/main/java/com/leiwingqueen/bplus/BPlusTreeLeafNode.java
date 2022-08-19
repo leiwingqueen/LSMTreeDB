@@ -1,10 +1,7 @@
 package com.leiwingqueen.bplus;
 
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-
-import java.util.Arrays;
 
 @Slf4j
 public class BPlusTreeLeafNode<K extends Comparable, V> extends BPlusTreeNode {
@@ -70,6 +67,7 @@ public class BPlusTreeLeafNode<K extends Comparable, V> extends BPlusTreeNode {
             recipient.size++;
             //recipient.insert(key, value);
         }
+        recipient.parent = this.parent;
         this.size -= size - splitIdx;
     }
 
@@ -82,6 +80,7 @@ public class BPlusTreeLeafNode<K extends Comparable, V> extends BPlusTreeNode {
             //V value = getValue(i);
             //recipient.insert(key, value);
         }
+        recipient.parent = this.parent;
         this.size = 0;
     }
 

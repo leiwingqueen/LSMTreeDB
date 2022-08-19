@@ -1,10 +1,7 @@
 package com.leiwingqueen.bplus;
 
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-
-import java.util.Arrays;
 
 @Slf4j
 public class BPlusTreeInternalNode<K extends Comparable> extends BPlusTreeNode {
@@ -71,18 +68,24 @@ public class BPlusTreeInternalNode<K extends Comparable> extends BPlusTreeNode {
         this.values[1] = newValue;
         this.keys[1] = newKey;
         this.size += 2;
+        oldValue.parent = this;
+        newValue.parent = this;
     }
 
     public void moveHalfTo(BPlusTreeInternalNode<K> recipient) {
         // split into two parts.[0,splitIdx) and [splitIdx,size)
         int splitIdx = size / 2;
         recipient.values[0] = getPointer(splitIdx);
+        // parent point change
+        getPointer(splitIdx).parent = recipient;
         recipient.size++;
         for (int i = splitIdx + 1; i < size; i++) {
             recipient.keys[recipient.size] = getKey(i);
             recipient.values[recipient.size] = getPointer(i);
+            getPointer(i).parent = recipient;
             recipient.size++;
         }
+        recipient.parent = this.parent;
         this.size -= size - splitIdx;
     }
 
@@ -96,6 +99,7 @@ public class BPlusTreeInternalNode<K extends Comparable> extends BPlusTreeNode {
         for (int i = 0; i < size; i++) {
             recipient.keys[recipient.size] = getKey(i);
             recipient.values[recipient.size] = getPointer(i);
+            getPointer(i).parent = recipient;
             //K key = getKey(i);
             //BPlusTreeNode value = getPointer(i);
             //recipient.insert(key, value);
@@ -104,6 +108,7 @@ public class BPlusTreeInternalNode<K extends Comparable> extends BPlusTreeNode {
         //split to [0,splitIdx),[splitIdx,size)
         // need to add one because we need to add the new key later
         int splitIdx = (recipient.size + 1) / 2;
+        recipient.parent = this.parent;
         this.size = 0;
         return recipient.getKey(splitIdx);
     }

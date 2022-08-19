@@ -10,13 +10,14 @@ import static org.junit.Assert.*;
 public class BPlusTreeImplTest {
     @Test
     public void get() {
+        int n = 100;
         BPlusTree<Integer, Integer> tree = new BPlusTreeImpl<>();
-        for (int i = 1; i <= 5; i++) {
+        for (int i = 1; i <= n; i++) {
             tree.insert(i, i);
         }
-        for (int i = 1; i <= 5; i++) {
+        for (int i = 1; i <= n; i++) {
             Integer v = tree.get(i);
-            Assert.assertEquals(i, v.intValue());
+            Assert.assertEquals(i, v == null ? -1 : v.intValue());
         }
     }
 }
