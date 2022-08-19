@@ -1,6 +1,9 @@
 package com.leiwingqueen.bplus;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
+
+import java.util.Iterator;
 
 @Slf4j
 public class BPlusTreeImpl<K extends Comparable, V> implements BPlusTree<K, V> {
@@ -42,6 +45,23 @@ public class BPlusTreeImpl<K extends Comparable, V> implements BPlusTree<K, V> {
         log.info("leaf node split to {} and {}.split key:{}", node, splitNode, pKey);
         insertInParent(node, pKey, splitNode);
         return true;
+    }
+
+    @Override
+    public Iterator<Pair<K, V>> begin() {
+        // get the left most leaf node
+        BPlusTreeNode node = this.root;
+        while (node instanceof BPlusTreeInternalNode) {
+            node = ((BPlusTreeInternalNode<K>) node).getPointer(0);
+        }
+        return new BPlusTreeIterator<>((BPlusTreeLeafNode<K, V>) node, 0);
+    }
+
+    @Override
+    public Iterator<Pair<K, V>> begin(K key) {
+        BPlusTreeLeafNode<K, V> node = find(root, key);
+        int idx = node.keyIndex(key);
+        return new BPlusTreeIterator<>(node, idx);
     }
 
     @Override
@@ -130,5 +150,33 @@ public class BPlusTreeImpl<K extends Comparable, V> implements BPlusTree<K, V> {
         log.info("inner node split to {} and {}.split key:{}", parent, splitNode, midKey);
         // new key need to add parent
         insertInParent(parent, midKey, splitNode);
+    }
+
+    private static class BPlusTreeIterator<K extends Comparable, V> implements Iterator<Pair<K, V>> {
+        // current leaf node
+        private BPlusTreeLeafNode<K, V> node;
+        // the index in the node
+        private int idx;
+
+        public BPlusTreeIterator(BPlusTreeLeafNode<K, V> node, int idx) {
+            this.node = node;
+            this.idx = idx;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return this.idx >= 0 && node != null;
+        }
+
+        @Override
+        public Pair<K, V> next() {
+            Pair<K, V> pair = Pair.of(node.getKey(idx), node.getValue(idx));
+            this.idx++;
+            if (this.idx == node.size) {
+                node = node.getNext();
+                idx = 0;
+            }
+            return pair;
+        }
     }
 }
