@@ -4,7 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 @Slf4j
-public class BPlusTreeInternalNode<K extends Comparable> extends BPlusTreeNode {
+public class BPlusTreeInternalNode<K extends Comparable> extends BPlusTreeNode<K> {
     //keys[0] is useless
     private Object[] keys;
     private BPlusTreeNode[] values;
@@ -16,6 +16,7 @@ public class BPlusTreeInternalNode<K extends Comparable> extends BPlusTreeNode {
         this.values = new BPlusTreeNode[maxSize];
     }
 
+    @Override
     public K getKey(int idx) {
         return (K) keys[idx];
     }
@@ -55,9 +56,13 @@ public class BPlusTreeInternalNode<K extends Comparable> extends BPlusTreeNode {
         return true;
     }
 
-    public int remove(int index) {
+    public int remove(K key) {
+        int idx = findKeyIndex(key);
+        if (idx < 0) {
+            return size;
+        }
         // move the entries move to the left where the entries right to the remove key
-        for (int i = index; i < size - 1; i++) {
+        for (int i = idx; i < size - 1; i++) {
             keys[i] = keys[i + 1];
             values[i] = values[i + 1];
         }
@@ -73,7 +78,7 @@ public class BPlusTreeInternalNode<K extends Comparable> extends BPlusTreeNode {
      *
      * refer to cmu bustub api design
      */
-    void populateNewRoot(BPlusTreeNode oldValue, K newKey, BPlusTreeNode newValue) {
+    public void populateNewRoot(BPlusTreeNode oldValue, K newKey, BPlusTreeNode newValue) {
         this.values[0] = oldValue;
         this.values[1] = newValue;
         this.keys[1] = newKey;
@@ -118,6 +123,48 @@ public class BPlusTreeInternalNode<K extends Comparable> extends BPlusTreeNode {
         recipient.parent = this.parent;
         this.size = 0;
         return recipient.getKey(splitIdx);
+    }
+
+    /**
+     * find the sliding node,return form like [pre sliding node,post sliding node]
+     *
+     * @return
+     */
+    public BPlusTreeInternalNode<K>[] findSlidingNodes() {
+        if (parent == null) {
+            return new BPlusTreeInternalNode[]{null, null};
+        }
+        BPlusTreeInternalNode<K> p = (BPlusTreeInternalNode<K>) this.parent;
+        BPlusTreeInternalNode pre = null, post = null;
+        int index = p.findKeyIndex(getKey(0));
+        if (index > 0) {
+            pre = (BPlusTreeInternalNode<K>) getPointer(index - 1);
+        }
+        if (index < p.size - 1) {
+            post = (BPlusTreeInternalNode<K>) getPointer(index + 1);
+        }
+        return new BPlusTreeInternalNode[]{pre, post};
+    }
+
+    /**
+     * find the key index
+     *
+     * @param key
+     * @return
+     */
+    public int findKeyIndex(K key) {
+        int l = 1, r = size - 1;
+        while (l <= r) {
+            int mid = l + (r - l) / 2;
+            if (getKey(mid).compareTo(key) == 0) {
+                return mid;
+            } else if (getKey(mid).compareTo(key) > 0) {
+                r = mid - 1;
+            } else {
+                l = mid + 1;
+            }
+        }
+        return -1;
     }
 
     @Override

@@ -1,12 +1,10 @@
 package com.leiwingqueen.bplus;
 
-import lombok.Data;
-
-public class BPlusTreeNode {
+public abstract class BPlusTreeNode<K extends Comparable> {
     protected int size;
     protected int maxSize;
     // parent node
-    protected BPlusTreeNode parent;
+    protected BPlusTreeNode<K> parent;
 
     public int getSize() {
         return size;
@@ -31,4 +29,6 @@ public class BPlusTreeNode {
     public void setParent(BPlusTreeNode parent) {
         this.parent = parent;
     }
+
+    public abstract K getKey(int idx);
 }

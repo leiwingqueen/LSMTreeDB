@@ -4,7 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 @Slf4j
-public class BPlusTreeLeafNode<K extends Comparable, V> extends BPlusTreeNode {
+public class BPlusTreeLeafNode<K extends Comparable, V> extends BPlusTreeNode<K> {
     private Object[] keys;
     private Object[] values;
     private BPlusTreeLeafNode<K, V> next;
@@ -17,6 +17,7 @@ public class BPlusTreeLeafNode<K extends Comparable, V> extends BPlusTreeNode {
         values = new Object[maxSize];
     }
 
+    @Override
     public K getKey(int idx) {
         return (K) keys[idx];
     }

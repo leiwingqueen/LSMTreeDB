@@ -13,17 +13,24 @@ public class BPlusTreeImpl<K extends Comparable, V> implements BPlusTree<K, V> {
     private BPlusTreeNode root;
 
     public BPlusTreeImpl() {
-        root = new BPlusTreeLeafNode<K, V>(MAX_DEGREE - 1);
+        root = null;
+        //root = new BPlusTreeLeafNode<K, V>(MAX_DEGREE - 1);
     }
 
     @Override
     public V get(K key) {
+        if (root == null) {
+            return null;
+        }
         BPlusTreeLeafNode<K, V> node = find(root, key);
         return getValueInLeaf(node, key);
     }
 
     @Override
     public boolean insert(K key, V value) {
+        if (root == null) {
+            root = new BPlusTreeLeafNode<K, V>(MAX_DEGREE - 1);
+        }
         BPlusTreeLeafNode<K, V> node = find(root, key);
         // insert in leaf node
         if (node.size < node.maxSize) {
@@ -159,6 +166,9 @@ public class BPlusTreeImpl<K extends Comparable, V> implements BPlusTree<K, V> {
 
     // referer to book <<database system concept>> pseudocode
     private boolean delete(K key) {
+        if (root == null) {
+            return false;
+        }
         BPlusTreeLeafNode<K, V> leafNode = find(root, key);
         if (leafNode.keyIndex(key) < 0) {
             return false;
@@ -168,6 +178,46 @@ public class BPlusTreeImpl<K extends Comparable, V> implements BPlusTree<K, V> {
     }
 
     private void deleteEntry(BPlusTreeNode node, K key) {
+        if (node instanceof BPlusTreeLeafNode) {
+            BPlusTreeLeafNode<K, V> leafNode = (BPlusTreeLeafNode<K, V>) node;
+            leafNode.remove(key);
+        } else {
+            BPlusTreeInternalNode<K> innerNode = (BPlusTreeInternalNode<K>) node;
+            innerNode.remove(key);
+            //if (N is the root and N has only one remaining child)
+            //then make the child of N the new root of the tree and delete N
+            if (innerNode.parent == null && node.size == 1) {
+                BPlusTreeNode child = innerNode.getPointer(0);
+                root = child;
+                return;
+            }
+        }
+        // do not need to merge or redistribution
+        if (node.size >= (node.maxSize + 1) / 2) {
+            return;
+        }
+        BPlusTreeNode[] slidingNodes = findSlidingNodes(node);
+    }
+
+    /**
+     * find the sliding node,return form like [pre sliding node,post sliding node]
+     *
+     * @return
+     */
+    private BPlusTreeNode<K>[] findSlidingNodes(BPlusTreeNode<K> node) {
+        if (node.parent == null) {
+            return new BPlusTreeNode[]{null, null};
+        }
+        BPlusTreeInternalNode<K> p = (BPlusTreeInternalNode<K>) node.parent;
+        BPlusTreeNode<K> pre = null, post = null;
+        int index = p.findKeyIndex(node.getKey(0));
+        if (index > 0) {
+            pre = p.getPointer(index - 1);
+        }
+        if (index < p.size - 1) {
+            post = p.getPointer(index + 1);
+        }
+        return new BPlusTreeNode[]{pre, post};
     }
 
     private static class BPlusTreeIterator<K extends Comparable, V> implements Iterator<Pair<K, V>> {
