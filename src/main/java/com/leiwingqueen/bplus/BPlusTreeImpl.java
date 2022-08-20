@@ -177,7 +177,7 @@ public class BPlusTreeImpl<K extends Comparable, V> implements BPlusTree<K, V> {
         return true;
     }
 
-    private void deleteEntry(BPlusTreeNode node, K key) {
+    private void deleteEntry(BPlusTreeNode<K> node, K key) {
         if (node instanceof BPlusTreeLeafNode) {
             BPlusTreeLeafNode<K, V> leafNode = (BPlusTreeLeafNode<K, V>) node;
             leafNode.remove(key);
@@ -196,7 +196,27 @@ public class BPlusTreeImpl<K extends Comparable, V> implements BPlusTree<K, V> {
         if (node.size >= (node.maxSize + 1) / 2) {
             return;
         }
+        // root node
         BPlusTreeNode[] slidingNodes = findSlidingNodes(node);
+        if (slidingNodes[0] == null && slidingNodes[1] == null) {
+            // no sliding node,we can not merge or redistribution
+            return;
+        }
+        if (slidingNodes[0] != null) {
+            BPlusTreeNode slidingNode = slidingNodes[0];
+            if (slidingNode.size + node.size <= node.maxSize) {
+                // entries in N and N′ can fit in a single node
+                if (node instanceof BPlusTreeInternalNode) {
+                    ((BPlusTreeInternalNode) node).moveAllTo((BPlusTreeInternalNode) slidingNode);
+                } else {
+                    ((BPlusTreeLeafNode) node).moveAllTo((BPlusTreeLeafNode) slidingNode);
+                    ((BPlusTreeLeafNode<K, V>) slidingNode).setNext(((BPlusTreeLeafNode<K, V>) node).getNext());
+                }
+                deleteEntry(node.parent, node.getKey(0));
+            } else {
+                
+            }
+        }
     }
 
     /**
