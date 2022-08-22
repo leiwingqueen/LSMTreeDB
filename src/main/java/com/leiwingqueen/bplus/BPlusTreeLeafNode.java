@@ -91,6 +91,14 @@ public class BPlusTreeLeafNode<K extends Comparable, V> extends BPlusTreeNode<K>
         this.size -= size - splitIdx;
     }
 
+    /*****************************************************************************
+     * MERGE
+     *****************************************************************************/
+
+    /*
+     * Remove all of key & value pairs from this page to "recipient" page. Don't forget
+     * to update the next_page id in the sibling page
+     */
     public void moveAllTo(BPlusTreeLeafNode recipient) {
         for (int i = 0; i < size; i++) {
             recipient.keys[recipient.size] = getKey(i);
@@ -98,7 +106,28 @@ public class BPlusTreeLeafNode<K extends Comparable, V> extends BPlusTreeNode<K>
             recipient.size++;
         }
         recipient.parent = this.parent;
+        recipient.next = this.getNext();
         this.size = 0;
+    }
+
+    /*
+     * Remove the last key & value pair from this page to head of "recipient" page.
+     * You need to handle the original dummy key properly, e.g. updating recipient’s array to position the middle_key at the
+     * right place.
+     * You also need to use BufferPoolManager to persist changes to the parent page id for those pages that are
+     * moved to the recipient
+     */
+    public K moveLastToFrontOf(BPlusTreeLeafNode<K, V> recipient, K middleKey) {
+        for (int i = recipient.size - 1; i >= 0; i--) {
+            recipient.keys[i + 1] = recipient.keys[i];
+            recipient.values[i + 1] = recipient.values[i];
+        }
+        recipient.keys[0] = middleKey;
+        recipient.values[0] = this.getValue(size - 1);
+        recipient.size++;
+        K key = this.getKey(size - 1);
+        size--;
+        return key;
     }
 
     /**

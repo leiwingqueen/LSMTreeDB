@@ -178,17 +178,40 @@ public class BPlusTreeInternalNode<K extends Comparable> extends BPlusTreeNode<K
      * You also need to use BufferPoolManager to persist changes to the parent page id for those pages that are
      * moved to the recipient
      */
-    public void MoveLastToFrontOf(BPlusTreeInternalNode<K> recipient) {
-        for (int i = recipient.size - 1; i > 0; i--) {
+    public K moveLastToFrontOf(BPlusTreeInternalNode<K> recipient, K middleKey) {
+        for (int i = recipient.size - 1; i >= 0; i--) {
             recipient.keys[i + 1] = recipient.keys[i];
             recipient.values[i + 1] = recipient.values[i];
         }
+        recipient.keys[0] = middleKey;
+        recipient.values[0] = getPointer(size - 1);
+        getPointer(size - 1).parent = this;
         recipient.size++;
-        recipient.keys[1] = this.keys[size - 1];
-        recipient.values[1] = recipient.values[0];
-        recipient.values[0] = this.values[size - 1];
-        recipient.values[0].parent = this;
-        this.size--;
+        K key = this.getKey(size - 1);
+        size--;
+        return key;
+    }
+
+    /*****************************************************************************
+     * MERGE
+     *****************************************************************************/
+    /*
+     * Remove all of key & value pairs from this page to "recipient" page.
+     * The middle_key is the separation key you should get from the parent. You need
+     * to make sure the middle key is added to the recipient to maintain the invariant.
+     * You also need to use BufferPoolManager to persist changes to the parent page id for those
+     * pages that are moved to the recipient
+     */
+    public void moveAllTo(BPlusTreeInternalNode<K> recipient, K middleKey) {
+        int n = recipient.size;
+        recipient.keys[n] = middleKey;
+        recipient.values[n] = getPointer(0);
+        for (int i = 1; i < this.size; i++) {
+            recipient.keys[n + i] = getKey(i);
+            recipient.values[n + i] = getPointer(i);
+        }
+        recipient.size += this.size;
+        this.size = 0;
     }
 
     @Override

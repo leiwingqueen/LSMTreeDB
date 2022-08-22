@@ -56,7 +56,7 @@ public class BPlusTreeImpl<K extends Comparable, V> implements BPlusTree<K, V> {
 
     @Override
     public boolean remove(K key) {
-        return false;
+        return delete(key);
     }
 
     @Override
@@ -210,34 +210,64 @@ public class BPlusTreeImpl<K extends Comparable, V> implements BPlusTree<K, V> {
         }
         if (indexInParent > 0) {
             BPlusTreeNode<K> slidingNode = parent.getPointer(indexInParent - 1);
+            K splitKey = parent.getKey(indexInParent);
             if (slidingNode.size + node.size <= node.maxSize) {
                 // entries in N and N′ can fit in a single node
                 if (node instanceof BPlusTreeInternalNode) {
-                    ((BPlusTreeInternalNode) node).moveAllTo((BPlusTreeInternalNode) slidingNode);
+                    ((BPlusTreeInternalNode) node).moveAllTo((BPlusTreeInternalNode) slidingNode, splitKey);
                 } else {
                     ((BPlusTreeLeafNode) node).moveAllTo((BPlusTreeLeafNode) slidingNode);
-                    ((BPlusTreeLeafNode<K, V>) slidingNode).setNext(((BPlusTreeLeafNode<K, V>) node).getNext());
                 }
-                deleteEntry(node.parent, node.getKey(0));
+                deleteEntry(node.parent, splitKey);
             } else {
                 // redistribution
                 if (node instanceof BPlusTreeInternalNode) {
                     redistribute((BPlusTreeInternalNode<K>) node, (BPlusTreeInternalNode<K>) slidingNode, indexInParent);
-                }else {
-                    
+                } else {
+                    redistribute((BPlusTreeLeafNode<K, V>) node, (BPlusTreeLeafNode<K, V>) slidingNode, indexInParent);
                 }
             }
         } else {
-
+            // similar before
+            BPlusTreeNode<K> slidingNode = parent.getPointer(indexInParent + 1);
+            K splitKey = parent.getKey(indexInParent + 1);
+            if (slidingNode.size + node.size <= node.maxSize) {
+                // entries in N and N′ can fit in a single node
+                if (node instanceof BPlusTreeInternalNode) {
+                    ((BPlusTreeInternalNode) slidingNode).moveAllTo((BPlusTreeInternalNode) node, splitKey);
+                } else {
+                    ((BPlusTreeLeafNode) slidingNode).moveAllTo((BPlusTreeLeafNode) node);
+                }
+                deleteEntry(node.parent, splitKey);
+            } else {
+                // redistribution
+                if (node instanceof BPlusTreeInternalNode) {
+                    redistribute((BPlusTreeInternalNode<K>) node, (BPlusTreeInternalNode<K>) slidingNode, indexInParent);
+                } else {
+                    redistribute((BPlusTreeLeafNode<K, V>) node, (BPlusTreeLeafNode<K, V>) slidingNode, indexInParent);
+                }
+            }
         }
     }
 
     private void redistribute(BPlusTreeInternalNode<K> node, BPlusTreeInternalNode<K> predecessor, int splitIndex) {
+        BPlusTreeInternalNode<K> parent = (BPlusTreeInternalNode<K>) predecessor.parent;
+        K key = predecessor.moveLastToFrontOf(node, parent.getKey(splitIndex));
+        parent.setKeyAt(splitIndex, key);
+    }
+
+    private void redistribute(BPlusTreeLeafNode<K, V> node, BPlusTreeLeafNode<K, V> predecessor, int splitIndex) {
+        predecessor.moveLastToFrontOf(node);
+        BPlusTreeInternalNode<K> parent = (BPlusTreeInternalNode<K>) predecessor.parent;
+        parent.setKeyAt(splitIndex, node.getKey(0));
+    }
+
+    private void redistribute2(BPlusTreeInternalNode<K> node, BPlusTreeInternalNode<K> predecessor, int splitIndex) {
         K tmp = predecessor.getKey(predecessor.size - 1);
         BPlusTreeInternalNode<K> parent = (BPlusTreeInternalNode<K>) predecessor.parent;
         predecessor.setKeyAt(predecessor.size - 1, parent.getKey(splitIndex));
         parent.setKeyAt(splitIndex, tmp);
-        predecessor.MoveLastToFrontOf(node);
+        predecessor.moveLastToFrontOf(node);
     }
 
     private int findKeyIndexInParent(BPlusTreeNode<K> node) {
