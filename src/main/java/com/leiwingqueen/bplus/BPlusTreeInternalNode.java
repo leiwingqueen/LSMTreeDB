@@ -7,7 +7,7 @@ import org.apache.commons.lang3.StringUtils;
 public class BPlusTreeInternalNode<K extends Comparable> extends BPlusTreeNode<K> {
     //keys[0] is useless
     private Object[] keys;
-    private BPlusTreeNode[] values;
+    private BPlusTreeNode<K>[] values;
 
     public BPlusTreeInternalNode(int maxSize) {
         this.size = 0;
@@ -21,7 +21,7 @@ public class BPlusTreeInternalNode<K extends Comparable> extends BPlusTreeNode<K
         return (K) keys[idx];
     }
 
-    public BPlusTreeNode getPointer(int idx) {
+    public BPlusTreeNode<K> getPointer(int idx) {
         return values[idx];
     }
 
@@ -165,6 +165,30 @@ public class BPlusTreeInternalNode<K extends Comparable> extends BPlusTreeNode<K
             }
         }
         return -1;
+    }
+
+    public void setKeyAt(int index, K key) {
+        this.keys[index] = key;
+    }
+
+    /*
+     * Remove the last key & value pair from this page to head of "recipient" page.
+     * You need to handle the original dummy key properly, e.g. updating recipient’s array to position the middle_key at the
+     * right place.
+     * You also need to use BufferPoolManager to persist changes to the parent page id for those pages that are
+     * moved to the recipient
+     */
+    public void MoveLastToFrontOf(BPlusTreeInternalNode<K> recipient) {
+        for (int i = recipient.size - 1; i > 0; i--) {
+            recipient.keys[i + 1] = recipient.keys[i];
+            recipient.values[i + 1] = recipient.values[i];
+        }
+        recipient.size++;
+        recipient.keys[1] = this.keys[size - 1];
+        recipient.values[1] = recipient.values[0];
+        recipient.values[0] = this.values[size - 1];
+        recipient.values[0].parent = this;
+        this.size--;
     }
 
     @Override
