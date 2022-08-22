@@ -111,23 +111,32 @@ public class BPlusTreeLeafNode<K extends Comparable, V> extends BPlusTreeNode<K>
     }
 
     /*
-     * Remove the last key & value pair from this page to head of "recipient" page.
-     * You need to handle the original dummy key properly, e.g. updating recipient’s array to position the middle_key at the
-     * right place.
-     * You also need to use BufferPoolManager to persist changes to the parent page id for those pages that are
-     * moved to the recipient
+     * Remove the last key & value pair from this page to "recipient" page.
      */
-    public K moveLastToFrontOf(BPlusTreeLeafNode<K, V> recipient, K middleKey) {
+    public void moveLastToFrontOf(BPlusTreeLeafNode<K, V> recipient) {
         for (int i = recipient.size - 1; i >= 0; i--) {
             recipient.keys[i + 1] = recipient.keys[i];
             recipient.values[i + 1] = recipient.values[i];
         }
-        recipient.keys[0] = middleKey;
+        recipient.keys[0] = this.getKey(size - 1);
         recipient.values[0] = this.getValue(size - 1);
         recipient.size++;
-        K key = this.getKey(size - 1);
         size--;
-        return key;
+    }
+
+    /*
+     * Remove the first key & value pair from this page to "recipient" page.
+     */
+    public void moveFirstToEndOf(BPlusTreeLeafNode<K, V> recipient) {
+        int n = recipient.size;
+        recipient.keys[n] = getKey(0);
+        recipient.values[n] = getValue(0);
+        for (int i = 0; i < size - 1; i++) {
+            keys[i] = keys[i + 1];
+            values[i] = values[i + 1];
+        }
+        size--;
+        recipient.size++;
     }
 
     /**

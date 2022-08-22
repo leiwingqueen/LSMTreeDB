@@ -192,6 +192,30 @@ public class BPlusTreeInternalNode<K extends Comparable> extends BPlusTreeNode<K
         return key;
     }
 
+    /*
+     * Remove the first key & value pair from this page to tail of "recipient" page.
+     *
+     * The middle_key is the separation key you should get from the parent. You need
+     * to make sure the middle key is added to the recipient to maintain the invariant.
+     * You also need to use BufferPoolManager to persist changes to the parent page id for those
+     * pages that are moved to the recipient
+     */
+    public K moveFirstToEndOf(BPlusTreeInternalNode<K> recipient, K middleKey) {
+        int n = recipient.size;
+        recipient.keys[n] = middleKey;
+        recipient.values[n] = this.getPointer(0);
+        recipient.size++;
+        K key = getKey(1);
+        // all element move to the left
+        values[0] = values[1];
+        for (int i = 1; i < size - 1; i++) {
+            keys[i] = keys[i + 1];
+            values[i] = values[i + 1];
+        }
+        size--;
+        return key;
+    }
+
     /*****************************************************************************
      * MERGE
      *****************************************************************************/

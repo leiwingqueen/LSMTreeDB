@@ -242,9 +242,9 @@ public class BPlusTreeImpl<K extends Comparable, V> implements BPlusTree<K, V> {
             } else {
                 // redistribution
                 if (node instanceof BPlusTreeInternalNode) {
-                    redistribute((BPlusTreeInternalNode<K>) node, (BPlusTreeInternalNode<K>) slidingNode, indexInParent);
+                    redistribute2((BPlusTreeInternalNode<K>) node, (BPlusTreeInternalNode<K>) slidingNode, indexInParent);
                 } else {
-                    redistribute((BPlusTreeLeafNode<K, V>) node, (BPlusTreeLeafNode<K, V>) slidingNode, indexInParent);
+                    redistribute2((BPlusTreeLeafNode<K, V>) node, (BPlusTreeLeafNode<K, V>) slidingNode, indexInParent);
                 }
             }
         }
@@ -262,12 +262,16 @@ public class BPlusTreeImpl<K extends Comparable, V> implements BPlusTree<K, V> {
         parent.setKeyAt(splitIndex, node.getKey(0));
     }
 
-    private void redistribute2(BPlusTreeInternalNode<K> node, BPlusTreeInternalNode<K> predecessor, int splitIndex) {
-        K tmp = predecessor.getKey(predecessor.size - 1);
-        BPlusTreeInternalNode<K> parent = (BPlusTreeInternalNode<K>) predecessor.parent;
-        predecessor.setKeyAt(predecessor.size - 1, parent.getKey(splitIndex));
-        parent.setKeyAt(splitIndex, tmp);
-        predecessor.moveLastToFrontOf(node);
+    private void redistribute2(BPlusTreeInternalNode<K> node, BPlusTreeInternalNode<K> postDecessor, int splitIndex) {
+        BPlusTreeInternalNode<K> parent = (BPlusTreeInternalNode<K>) postDecessor.parent;
+        K key = postDecessor.moveFirstToEndOf(node, parent.getKey(splitIndex));
+        parent.setKeyAt(splitIndex, key);
+    }
+
+    private void redistribute2(BPlusTreeLeafNode<K, V> node, BPlusTreeLeafNode<K, V> postDecessor, int splitIndex) {
+        postDecessor.moveFirstToEndOf(node);
+        BPlusTreeInternalNode<K> parent = (BPlusTreeInternalNode<K>) node.parent;
+        parent.setKeyAt(splitIndex, postDecessor.getKey(0));
     }
 
     private int findKeyIndexInParent(BPlusTreeNode<K> node) {
