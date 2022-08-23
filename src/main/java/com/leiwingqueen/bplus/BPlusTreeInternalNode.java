@@ -112,7 +112,7 @@ public class BPlusTreeInternalNode<K extends Comparable> extends BPlusTreeNode<K
      */
     public void copyNFrom(BPlusTreeInternalNode<K> node, int from, int to) {
         int idx = 0;
-        for (int i = from; i <= to; i++) {
+        for (int i = from; i < to; i++) {
             if (idx > 0) {
                 this.keys[idx] = node.getKey(i);
             }

@@ -87,7 +87,7 @@ public class BPlusTreeLeafNode<K extends Comparable, V> extends BPlusTreeNode<K>
             recipient.values[recipient.size] = getValue(i);
             recipient.size++;
         }
-        recipient.parent = this.parent;
+        // recipient.parent = this.parent;
         this.size -= size - splitIdx;
     }
 
@@ -98,7 +98,7 @@ public class BPlusTreeLeafNode<K extends Comparable, V> extends BPlusTreeNode<K>
             values[idx] = node.getValue(i);
             idx++;
         }
-        this.size = 0;
+        this.size = idx;
     }
 
     /*****************************************************************************

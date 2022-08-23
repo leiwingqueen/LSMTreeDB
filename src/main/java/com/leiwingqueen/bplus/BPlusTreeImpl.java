@@ -47,6 +47,7 @@ public class BPlusTreeImpl<K extends Comparable, V> implements BPlusTree<K, V> {
         BPlusTreeLeafNode<K, V> splitNode = new BPlusTreeLeafNode<>(MAX_DEGREE - 1);
         node.setNext(splitNode);
         tmpNode.moveHalfTo(splitNode);
+        splitNode.parent = node.parent;
         // tmpNode.moveAllTo(node);
         node.copyNFrom(tmpNode, 0, tmpNode.size);
         // pKey need to add to the parent node
@@ -162,6 +163,7 @@ public class BPlusTreeImpl<K extends Comparable, V> implements BPlusTree<K, V> {
         tmpNode.insert(key, pointer);
         BPlusTreeInternalNode<K> splitNode = new BPlusTreeInternalNode<>(MAX_DEGREE);
         tmpNode.moveHalfTo(splitNode);
+        splitNode.parent = parent.parent;
         parent.copyNFrom(tmpNode, 0, tmpNode.size);
         K midKey = splitNode.getKey(0);
         //tmpNode.moveAllTo(parent);
