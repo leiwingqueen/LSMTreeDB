@@ -124,4 +124,30 @@ public class BPlusTreeImplTest {
         }
         Assert.assertEquals(0, cnt);
     }
+
+    @Test
+    public void testDelete_simple() {
+        BPlusTree<Integer, Integer> tree = new BPlusTreeImpl<>();
+        for (int i = 0; i < 5; i++) {
+            tree.insert(i + 1, i + 1);
+        }
+        tree.remove(5);
+        Assert.assertNull(tree.get(5));
+        tree.remove(4);
+        Assert.assertNull(tree.get(4));
+    }
+
+    @Test
+    public void testDelete_1000() {
+        int n = 1000;
+        BPlusTree<Integer, Integer> tree = new BPlusTreeImpl<>();
+        for (int i = 1; i <= n; i++) {
+            tree.insert(i, i);
+        }
+        for (int i = 1; i <= n; i++) {
+            Assert.assertEquals(i, tree.get(i).intValue());
+            tree.remove(i);
+            Assert.assertNull(tree.get(i));
+        }
+    }
 }
