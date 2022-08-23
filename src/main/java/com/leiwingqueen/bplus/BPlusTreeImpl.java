@@ -39,14 +39,16 @@ public class BPlusTreeImpl<K extends Comparable, V> implements BPlusTree<K, V> {
         // need to split
         log.info("leaf node need to split...key:{},value:{}", key, value);
         BPlusTreeLeafNode<K, V> tmpNode = new BPlusTreeLeafNode<>(MAX_DEGREE);
-        node.moveAllTo(tmpNode);
+        tmpNode.copyNFrom(node, 0, node.size);
+        // node.moveAllTo(tmpNode);
         if (!tmpNode.insert(key, value)) {
             return false;
         }
         BPlusTreeLeafNode<K, V> splitNode = new BPlusTreeLeafNode<>(MAX_DEGREE - 1);
         node.setNext(splitNode);
         tmpNode.moveHalfTo(splitNode);
-        tmpNode.moveAllTo(node);
+        // tmpNode.moveAllTo(node);
+        node.copyNFrom(tmpNode, 0, tmpNode.size);
         // pKey need to add to the parent node
         K pKey = splitNode.getKey(0);
         log.info("leaf node split to {} and {}.split key:{}", node, splitNode, pKey);
@@ -153,12 +155,16 @@ public class BPlusTreeImpl<K extends Comparable, V> implements BPlusTree<K, V> {
             return;
         }
         // need to split
+        // |p0|k1|p1|k2|p2|k3|p3|--> |p0|k1|p1| and |p2|k3|p3|,and need to add k2 to parent
         BPlusTreeInternalNode<K> tmpNode = new BPlusTreeInternalNode<>(MAX_DEGREE + 1);
-        K midKey = parent.moveAllTo(tmpNode);
+        tmpNode.copyNFrom(parent, 0, parent.size);
+        //K midKey = parent.moveAllTo(tmpNode);
         tmpNode.insert(key, pointer);
         BPlusTreeInternalNode<K> splitNode = new BPlusTreeInternalNode<>(MAX_DEGREE);
         tmpNode.moveHalfTo(splitNode);
-        tmpNode.moveAllTo(parent);
+        parent.copyNFrom(tmpNode, 0, tmpNode.size);
+        K midKey = splitNode.getKey(0);
+        //tmpNode.moveAllTo(parent);
         log.info("inner node split to {} and {}.split key:{}", parent, splitNode, midKey);
         // new key need to add parent
         insertInParent(parent, midKey, splitNode);

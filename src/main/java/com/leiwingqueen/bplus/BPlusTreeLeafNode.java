@@ -91,6 +91,16 @@ public class BPlusTreeLeafNode<K extends Comparable, V> extends BPlusTreeNode<K>
         this.size -= size - splitIdx;
     }
 
+    public void copyNFrom(BPlusTreeLeafNode<K, V> node, int from, int to) {
+        int idx = 0;
+        for (int i = from; i < to; i++) {
+            keys[idx] = node.getKey(i);
+            values[idx] = node.getValue(i);
+            idx++;
+        }
+        this.size = 0;
+    }
+
     /*****************************************************************************
      * MERGE
      *****************************************************************************/

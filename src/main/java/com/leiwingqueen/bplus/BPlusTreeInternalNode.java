@@ -87,22 +87,42 @@ public class BPlusTreeInternalNode<K extends Comparable> extends BPlusTreeNode<K
         newValue.parent = this;
     }
 
+    /*****************************************************************************
+     * SPLIT
+     *****************************************************************************/
+
     public void moveHalfTo(BPlusTreeInternalNode<K> recipient) {
         // split into two parts.[0,splitIdx) and [splitIdx,size)
         int splitIdx = size / 2;
-        recipient.values[0] = getPointer(splitIdx);
-        // parent point change
-        getPointer(splitIdx).parent = recipient;
-        recipient.size++;
-        for (int i = splitIdx + 1; i < size; i++) {
-            recipient.keys[recipient.size] = getKey(i);
-            recipient.values[recipient.size] = getPointer(i);
+        int idx = 0;
+        for (int i = splitIdx; i < size; i++) {
+            recipient.keys[idx] = getKey(i);
+            recipient.values[idx] = getPointer(i);
             getPointer(i).parent = recipient;
-            recipient.size++;
+            idx++;
         }
+        recipient.size = idx;
         recipient.parent = this.parent;
         this.size -= size - splitIdx;
     }
+
+    /* Copy entries into me, starting from {items} and copy {size} entries.
+     * Since it is an internal page, for all entries (pages) moved, their parents page now changes to me.
+     * So I need to 'adopt' them by changing their parent page id, which needs to be persisted with BufferPoolManger
+     */
+    public void copyNFrom(BPlusTreeInternalNode<K> node, int from, int to) {
+        int idx = 0;
+        for (int i = from; i <= to; i++) {
+            if (idx > 0) {
+                this.keys[idx] = node.getKey(i);
+            }
+            this.values[idx] = node.getPointer(i);
+            this.values[idx].parent = this;
+            idx++;
+        }
+        this.size = idx;
+    }
+
 
     /**
      * move all entities to the recipient
