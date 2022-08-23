@@ -46,7 +46,7 @@ public class BPlusTreeInternalNode<K extends Comparable> extends BPlusTreeNode<K
             }
         }
         // move [l,size) one step
-        for (int i = size; i > l; i++) {
+        for (int i = size; i > l; i--) {
             keys[i] = keys[i - 1];
             values[i] = values[i - 1];
         }

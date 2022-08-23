@@ -5,7 +5,10 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 
 import static org.junit.Assert.*;
 
@@ -37,6 +40,37 @@ public class BPlusTreeImplTest {
             Assert.assertEquals(i, v == null ? -1 : v.intValue());
         }
         log.info("depth:{}", tree.getDepth());
+    }
+
+    @Test
+    public void revert_insert_and_get() {
+        int n = 1000;
+        BPlusTree<Integer, Integer> tree = new BPlusTreeImpl<>();
+        for (int i = n; i >= 1; i--) {
+            tree.insert(i, i);
+        }
+        for (int i = 1; i <= n; i++) {
+            Integer v = tree.get(i);
+            Assert.assertEquals(i, v == null ? -1 : v.intValue());
+        }
+    }
+
+    @Test
+    public void shuffle_insert_and_get() {
+        int n = 1000;
+        List<Integer> list = new ArrayList<>(n);
+        for (int i = 1; i <= n; i++) {
+            list.add(i);
+        }
+        Collections.shuffle(list);
+        BPlusTree<Integer, Integer> tree = new BPlusTreeImpl<>();
+        for (int i = 0; i < n; i++) {
+            tree.insert(list.get(i), list.get(i));
+        }
+        for (int i = 1; i <= n; i++) {
+            Integer v = tree.get(i);
+            Assert.assertEquals(i, v == null ? -1 : v.intValue());
+        }
     }
 
     // try to scan the leaf node
