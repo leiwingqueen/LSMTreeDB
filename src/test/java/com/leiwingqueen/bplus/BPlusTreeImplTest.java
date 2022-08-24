@@ -139,7 +139,7 @@ public class BPlusTreeImplTest {
 
     @Test
     public void testDelete_1000() {
-        int n = 1000;
+        int n = 5;
         BPlusTree<Integer, Integer> tree = new BPlusTreeImpl<>();
         for (int i = 1; i <= n; i++) {
             tree.insert(i, i);

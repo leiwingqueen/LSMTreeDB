@@ -200,6 +200,7 @@ public class BPlusTreeImpl<K extends Comparable, V> implements BPlusTree<K, V> {
             //then make the child of N the new root of the tree and delete N
             if (innerNode.parent == null && node.size == 1) {
                 BPlusTreeNode child = innerNode.getPointer(0);
+                child.parent = null;
                 root = child;
                 return;
             }
@@ -208,14 +209,18 @@ public class BPlusTreeImpl<K extends Comparable, V> implements BPlusTree<K, V> {
         if (node.size >= (node.maxSize + 1) / 2) {
             return;
         }
-        int indexInParent = findKeyIndexInParent(node);
-        BPlusTreeInternalNode<K> parent = (BPlusTreeInternalNode<K>) node.parent;
-        // root node
-        BPlusTreeNode[] slidingNodes = findSlidingNodes(node);
-        if (slidingNodes[0] == null && slidingNodes[1] == null) {
-            // no sliding node,we can not merge or redistribution
+        if (node.parent == null) {
             return;
         }
+        BPlusTreeInternalNode<K> parent = (BPlusTreeInternalNode<K>) node.parent;
+        int indexInParent = parent.valueIndex(node);
+        // int indexInParent = findKeyIndexInParent(node);
+        // root node
+        // BPlusTreeNode[] slidingNodes = findSlidingNodes(node);
+        /*if (slidingNodes[0] == null && slidingNodes[1] == null) {
+            // no sliding node,we can not merge or redistribution
+            return;
+        }*/
         if (indexInParent > 0) {
             BPlusTreeNode<K> slidingNode = parent.getPointer(indexInParent - 1);
             K splitKey = parent.getKey(indexInParent);

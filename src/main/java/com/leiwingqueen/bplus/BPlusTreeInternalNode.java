@@ -21,6 +21,19 @@ public class BPlusTreeInternalNode<K extends Comparable> extends BPlusTreeNode<K
         return (K) keys[idx];
     }
 
+    /*
+     * Helper method to find and return array index(or offset), so that its value
+     * equals to input "value"
+     */
+    public int valueIndex(BPlusTreeNode<K> node) {
+        for (int i = 0; i < size; i++) {
+            if (getPointer(i) == node) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
     public BPlusTreeNode<K> getPointer(int idx) {
         return values[idx];
     }
