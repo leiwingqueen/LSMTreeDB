@@ -143,10 +143,12 @@ public class BPlusTreeImplTest {
         BPlusTree<Integer, Integer> tree = new BPlusTreeImpl<>();
         for (int i = 1; i <= n; i++) {
             tree.insert(i, i);
+            Assert.assertEquals(true, tree.checkValidate());
         }
         for (int i = 1; i <= n; i++) {
             Assert.assertEquals(i, tree.get(i).intValue());
             tree.remove(i);
+            Assert.assertEquals(true, tree.checkValidate());
             Assert.assertNull(tree.get(i));
         }
     }

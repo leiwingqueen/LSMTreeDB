@@ -20,4 +20,6 @@ public interface BPlusTree<K, V> {
     Iterator<Pair<K, V>> begin(K key);
 
     int getDepth();
+
+    boolean checkValidate();
 }
