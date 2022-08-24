@@ -19,6 +19,7 @@ public class BPlusTreeImpl<K extends Comparable, V> implements BPlusTree<K, V> {
 
     @Override
     public V get(K key) {
+        log.info("get key:{}", key);
         if (root == null) {
             return null;
         }
@@ -254,9 +255,9 @@ public class BPlusTreeImpl<K extends Comparable, V> implements BPlusTree<K, V> {
             } else {
                 // redistribution
                 if (node instanceof BPlusTreeInternalNode) {
-                    redistribute((BPlusTreeInternalNode<K>) node, (BPlusTreeInternalNode<K>) slidingNode, indexInParent);
+                    redistribute((BPlusTreeInternalNode<K>) node, (BPlusTreeInternalNode<K>) slidingNode, indexInParent - 1);
                 } else {
-                    redistribute((BPlusTreeLeafNode<K, V>) node, (BPlusTreeLeafNode<K, V>) slidingNode, indexInParent);
+                    redistribute((BPlusTreeLeafNode<K, V>) node, (BPlusTreeLeafNode<K, V>) slidingNode, indexInParent - 1);
                 }
             }
         } else {
@@ -274,9 +275,9 @@ public class BPlusTreeImpl<K extends Comparable, V> implements BPlusTree<K, V> {
             } else {
                 // redistribution
                 if (node instanceof BPlusTreeInternalNode) {
-                    redistribute2((BPlusTreeInternalNode<K>) node, (BPlusTreeInternalNode<K>) slidingNode, indexInParent);
+                    redistribute2((BPlusTreeInternalNode<K>) node, (BPlusTreeInternalNode<K>) slidingNode, indexInParent + 1);
                 } else {
-                    redistribute2((BPlusTreeLeafNode<K, V>) node, (BPlusTreeLeafNode<K, V>) slidingNode, indexInParent);
+                    redistribute2((BPlusTreeLeafNode<K, V>) node, (BPlusTreeLeafNode<K, V>) slidingNode, indexInParent + 1);
                 }
             }
         }
@@ -306,6 +307,7 @@ public class BPlusTreeImpl<K extends Comparable, V> implements BPlusTree<K, V> {
         parent.setKeyAt(splitIndex, postDecessor.getKey(0));
     }
 
+    @Deprecated
     private int findKeyIndexInParent(BPlusTreeNode<K> node) {
         if (node.parent == null) {
             return -1;

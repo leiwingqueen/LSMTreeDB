@@ -138,27 +138,6 @@ public class BPlusTreeInternalNode<K extends Comparable> extends BPlusTreeNode<K
 
 
     /**
-     * move all entities to the recipient
-     *
-     * @param recipient
-     * @return the middle key
-     */
-    public K moveAllTo(BPlusTreeInternalNode<K> recipient) {
-        for (int i = 0; i < size; i++) {
-            recipient.keys[recipient.size] = getKey(i);
-            recipient.values[recipient.size] = getPointer(i);
-            getPointer(i).parent = recipient;
-            recipient.size++;
-        }
-        //split to [0,splitIdx),[splitIdx,size)
-        // need to add one because we need to add the new key later
-        int splitIdx = (recipient.size + 1) / 2;
-        recipient.parent = this.parent;
-        this.size = 0;
-        return recipient.getKey(splitIdx);
-    }
-
-    /**
      * find the sliding node,return form like [pre sliding node,post sliding node]
      *
      * @return
@@ -218,7 +197,7 @@ public class BPlusTreeInternalNode<K extends Comparable> extends BPlusTreeNode<K
         }
         recipient.keys[0] = middleKey;
         recipient.values[0] = getPointer(size - 1);
-        getPointer(size - 1).parent = this;
+        recipient.values[0].parent = recipient;
         recipient.size++;
         K key = this.getKey(size - 1);
         size--;
@@ -237,6 +216,7 @@ public class BPlusTreeInternalNode<K extends Comparable> extends BPlusTreeNode<K
         int n = recipient.size;
         recipient.keys[n] = middleKey;
         recipient.values[n] = this.getPointer(0);
+        recipient.values[n].parent = recipient;
         recipient.size++;
         K key = getKey(1);
         // all element move to the left
@@ -263,9 +243,11 @@ public class BPlusTreeInternalNode<K extends Comparable> extends BPlusTreeNode<K
         int n = recipient.size;
         recipient.keys[n] = middleKey;
         recipient.values[n] = getPointer(0);
+        recipient.values[n].parent = recipient;
         for (int i = 1; i < this.size; i++) {
             recipient.keys[n + i] = getKey(i);
             recipient.values[n + i] = getPointer(i);
+            recipient.values[n + i].parent = recipient;
         }
         recipient.size += this.size;
         this.size = 0;
