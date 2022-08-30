@@ -3,6 +3,8 @@ package com.leiwingqueen.bplus;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
 @Slf4j
 public class BPlusTreeInternalNode<K extends Comparable> extends BPlusTreeNode<K> {
     //keys[0] is useless
@@ -14,6 +16,7 @@ public class BPlusTreeInternalNode<K extends Comparable> extends BPlusTreeNode<K
         this.maxSize = maxSize;
         this.keys = new Object[maxSize];
         this.values = new BPlusTreeNode[maxSize];
+        this.latch = new ReentrantReadWriteLock();
     }
 
     @Override

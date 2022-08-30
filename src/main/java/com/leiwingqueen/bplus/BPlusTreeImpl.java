@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.Iterator;
+import java.util.concurrent.locks.Lock;
 
 @Slf4j
 public class BPlusTreeImpl<K extends Comparable, V> implements BPlusTree<K, V> {
@@ -23,7 +24,7 @@ public class BPlusTreeImpl<K extends Comparable, V> implements BPlusTree<K, V> {
         if (root == null) {
             return null;
         }
-        BPlusTreeLeafNode<K, V> node = find(root, key);
+        BPlusTreeLeafNode<K, V> node = find(root, key, null);
         return getValueInLeaf(node, key);
     }
 
@@ -32,7 +33,8 @@ public class BPlusTreeImpl<K extends Comparable, V> implements BPlusTree<K, V> {
         if (root == null) {
             root = new BPlusTreeLeafNode<K, V>(MAX_DEGREE - 1);
         }
-        BPlusTreeLeafNode<K, V> node = find(root, key);
+        BPlusTreeLeafNode<K, V> node = find(root, key, null);
+        Lock lock = node.latch.readLock();
         // insert in leaf node
         if (node.size < node.maxSize) {
             return node.insert(key, value);
@@ -113,7 +115,12 @@ public class BPlusTreeImpl<K extends Comparable, V> implements BPlusTree<K, V> {
         return true;
     }
 
-    private BPlusTreeLeafNode<K, V> find(BPlusTreeNode node, K key) {
+    private BPlusTreeLeafNode<K, V> find(BPlusTreeNode node, K key, Lock parentLock) {
+        Lock curLock = node.getLatch().readLock();
+        curLock.lock();
+        if (parentLock != null) {
+            parentLock.unlock();
+        }
         if (node instanceof BPlusTreeLeafNode) {
             return (BPlusTreeLeafNode) node;
         }
@@ -125,7 +132,7 @@ public class BPlusTreeImpl<K extends Comparable, V> implements BPlusTree<K, V> {
         }*/
         //find the first key > $key
         if (innerNode.getKey(innerNode.size - 1).compareTo(key) <= 0) {
-            return find(innerNode.getPointer(innerNode.size - 1), key);
+            return find(innerNode.getPointer(innerNode.size - 1), key, curLock);
         }
         int l = 1, r = innerNode.size - 1;
         while (l < r) {
@@ -137,27 +144,32 @@ public class BPlusTreeImpl<K extends Comparable, V> implements BPlusTree<K, V> {
                 l = mid + 1;
             }
         }
-        return find(innerNode.getPointer(l - 1), key);
+        return find(innerNode.getPointer(l - 1), key, curLock);
     }
 
     private V getValueInLeaf(BPlusTreeLeafNode<K, V> node, K key) {
-        if (node.size == 0 || key.compareTo(node.getKey(0)) < 0
-                || key.compareTo(node.getValue(node.size - 1)) > 0) {
-            return null;
-        }
-        int l = 0, r = node.size - 1;
-        while (l <= r) {
-            int mid = l + (r - l) / 2;
-            K selectKey = node.getKey(mid);
-            if (selectKey.compareTo(key) == 0) {
-                return node.getValue(mid);
-            } else if (selectKey.compareTo(key) > 0) {
-                r = mid - 1;
-            } else {
-                l = mid + 1;
+        try {
+            if (node.size == 0 || key.compareTo(node.getKey(0)) < 0
+                    || key.compareTo(node.getValue(node.size - 1)) > 0) {
+                return null;
             }
+            int l = 0, r = node.size - 1;
+            while (l <= r) {
+                int mid = l + (r - l) / 2;
+                K selectKey = node.getKey(mid);
+                if (selectKey.compareTo(key) == 0) {
+                    return node.getValue(mid);
+                } else if (selectKey.compareTo(key) > 0) {
+                    r = mid - 1;
+                } else {
+                    l = mid + 1;
+                }
+            }
+            return null;
+        } finally {
+            Lock lock = node.latch.readLock();
+            lock.unlock();
         }
-        return null;
     }
 
     // referer to book <<database system concept>>
